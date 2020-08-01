@@ -190,6 +190,7 @@ func (c *RegistryClient) formatURL(api string, querys []URLParameter, options *C
 }
 
 // GetDefaultHeaders gets the default headers for each request to be made to Service-Center
+//设置默认的head参数
 func (c *RegistryClient) GetDefaultHeaders() http.Header {
 
 	headers := http.Header{
@@ -197,7 +198,7 @@ func (c *RegistryClient) GetDefaultHeaders() http.Header {
 		HeaderUserAgent:   []string{"cse-serviceregistry-client/1.0.0"},
 		TenantHeader:      []string{"default"},
 	}
-
+	//设置tenant 服务端会读取
 	if c.Config.Tenant != "" {
 		headers.Set(TenantHeader, c.Config.Tenant)
 	}
