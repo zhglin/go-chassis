@@ -190,7 +190,7 @@ func (c *RegistryClient) formatURL(api string, querys []URLParameter, options *C
 }
 
 // GetDefaultHeaders gets the default headers for each request to be made to Service-Center
-//设置默认的head参数
+// 设置默认的head参数
 func (c *RegistryClient) GetDefaultHeaders() http.Header {
 
 	headers := http.Header{
