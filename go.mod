@@ -22,7 +22,6 @@ require (
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v0.17.0
-	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a // indirect
 )
 
 go 1.13
