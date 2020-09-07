@@ -3,17 +3,17 @@ package eventlistener
 import (
 	"fmt"
 	"github.com/go-chassis/go-archaius/event"
-	"github.com/go-chassis/go-chassis/resilience/rate"
-	"github.com/go-mesh/openlogging"
+	"github.com/go-chassis/go-chassis/v2/resilience/rate"
+	"github.com/go-chassis/openlog"
 
 	"strings"
 
-	"github.com/go-chassis/go-chassis/core/common"
+	"github.com/go-chassis/go-chassis/v2/core/common"
 )
 
 const (
 	//QPSLimitKey is a variable of type string
-	QPSLimitKey = "cse.flowcontrol"
+	QPSLimitKey = "servicecomb.flowcontrol"
 )
 
 //QPSEventListener is a struct used for Event listener
@@ -31,9 +31,9 @@ func (el *QPSEventListener) Event(e *event.Event) {
 	}
 	qps, ok := e.Value.(int)
 	if !ok {
-		openlogging.Error(fmt.Sprintf("invalid qps config %s", e.Value))
+		openlog.Error(fmt.Sprintf("invalid qps config %s", e.Value))
 	}
-	openlogging.Info("update rate limiter", openlogging.WithTags(openlogging.Tags{
+	openlog.Info("update rate limiter", openlog.WithTags(openlog.Tags{
 		"module": "RateLimiting",
 		"event":  e.EventType,
 		"value":  qps,

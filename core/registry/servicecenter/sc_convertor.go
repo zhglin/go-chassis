@@ -2,8 +2,8 @@ package servicecenter
 
 import (
 	scregistry "github.com/apache/servicecomb-service-center/pkg/registry"
-	"github.com/go-chassis/go-chassis/core/registry"
-	"github.com/go-chassis/go-chassis/pkg/scclient"
+	"github.com/go-chassis/go-chassis/v2/core/registry"
+	"github.com/go-chassis/go-chassis/v2/pkg/scclient"
 )
 
 // ToMicroService assign sc micro-service to go chassis micro-service
@@ -111,7 +111,6 @@ func ToSCOptions(options registry.Options) client.Options {
 	sco.TLSConfig = options.TLSConfig
 	sco.Addrs = options.Addrs
 	sco.Compressed = options.Compressed
-	sco.ConfigTenant = options.Tenant
 	sco.EnableSSL = options.EnableSSL
 	sco.Verbose = options.Verbose
 	sco.Version = options.Version

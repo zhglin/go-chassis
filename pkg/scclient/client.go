@@ -17,9 +17,9 @@ import (
 	"github.com/apache/servicecomb-service-center/pkg/registry"
 	"github.com/cenkalti/backoff"
 	"github.com/go-chassis/foundation/httpclient"
-	"github.com/go-chassis/go-chassis/pkg/util/httputil"
-	"github.com/go-chassis/go-chassis/resilience/retry"
-	"github.com/go-mesh/openlogging"
+	"github.com/go-chassis/go-chassis/v2/pkg/util/httputil"
+	"github.com/go-chassis/go-chassis/v2/resilience/retry"
+	"github.com/go-chassis/openlog"
 	"github.com/gorilla/websocket"
 )
 
@@ -49,8 +49,8 @@ const (
 // Define variables for the client
 var (
 	MSAPIPath     = ""
-	TenantHeader  = "X-Domain-Name"
 	GovernAPIPATH = ""
+	TenantHeader  = "X-Domain-Name"
 )
 var (
 	//ErrNotModified means instance is not changed
@@ -79,8 +79,7 @@ type RegistryClient struct {
 
 // RegistryConfig is a structure to store registry configurations like address of cc, ssl configurations and tenant name
 type RegistryConfig struct {
-	SSL    bool
-	Tenant string
+	SSL bool
 }
 
 // URLParameter maintains the list of parameters to be added in URL
@@ -95,8 +94,7 @@ func (c *RegistryClient) ResetRevision() {
 func (c *RegistryClient) Initialize(opt Options) (err error) {
 	c.revision = "0"
 	c.Config = &RegistryConfig{
-		SSL:    opt.EnableSSL,
-		Tenant: opt.ConfigTenant,
+		SSL: opt.EnableSSL,
 	}
 
 	options := &httpclient.Options{
@@ -119,12 +117,13 @@ func (c *RegistryClient) Initialize(opt Options) (err error) {
 		return err
 	}
 
-	//Set the API Version based on the value set in chassis.yaml cse.service.registry.api.version
+	//Set the API Version based on the value set in chassis.yaml servicecomb.registry.api.version
 	//Default Value Set to V4
 	opt.Version = strings.ToLower(opt.Version)
 	switch opt.Version {
 	case "v3":
 		c.apiVersion = "v3"
+		TenantHeader = "X-Tenant-Name"
 	default:
 		c.apiVersion = "v4"
 	}
@@ -146,13 +145,12 @@ func (c *RegistryClient) updateAPIPath() {
 	switch c.apiVersion {
 	case "v3":
 		MSAPIPath = APIPath
-		TenantHeader = "X-Tenant-Name"
 		GovernAPIPATH = APIPath
-		openlogging.GetLogger().Info("Use Service center v3")
+		openlog.Info("Use Service center v3")
 	default:
 		MSAPIPath = "/v4/" + projectID + "/registry"
 		GovernAPIPATH = "/v4/" + projectID + "/govern"
-		openlogging.GetLogger().Info("Use Service center v4")
+		openlog.Info("Use Service center v4")
 	}
 }
 
@@ -172,7 +170,7 @@ func (c *RegistryClient) SyncEndpoints() error {
 	}
 	if len(eps) != 0 {
 		c.pool.SetAddress(eps)
-		openlogging.GetLogger().Info("Sync service center endpoints " + strings.Join(eps, ","))
+		openlog.Info("Sync service center endpoints " + strings.Join(eps, ","))
 		return nil
 	}
 	return fmt.Errorf("sync endpoints failed")
@@ -198,10 +196,14 @@ func (c *RegistryClient) GetDefaultHeaders() http.Header {
 		HeaderUserAgent:   []string{"cse-serviceregistry-client/1.0.0"},
 		TenantHeader:      []string{"default"},
 	}
+<<<<<<< HEAD
 	//设置tenant 服务端会读取
 	if c.Config.Tenant != "" {
 		headers.Set(TenantHeader, c.Config.Tenant)
 	}
+=======
+
+>>>>>>> master
 	return headers
 }
 
@@ -560,7 +562,7 @@ func (c *RegistryClient) FindMicroServiceInstances(consumerID, appID, microServi
 		r := resp.Header.Get(HeaderRevision)
 		if r != c.revision && r != "" {
 			c.revision = r
-			openlogging.GetLogger().Debug("service center has new revision " + c.revision)
+			openlog.Debug("service center has new revision " + c.revision)
 		}
 
 		return response.Instances, nil
@@ -918,7 +920,7 @@ func (c *RegistryClient) WatchMicroService(microServiceID string, callback func(
 				}
 				err = conn.Close()
 				if err != nil {
-					openlogging.Error(err.Error())
+					openlog.Error(err.Error())
 				}
 				delete(c.conns, microServiceID)
 				c.startBackOff(microServiceID, callback)

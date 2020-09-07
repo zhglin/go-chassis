@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/go-chassis/go-archaius"
-	"github.com/go-chassis/go-chassis/core/common"
-	"github.com/go-chassis/go-chassis/core/config"
-	_ "github.com/go-chassis/go-chassis/core/handler"
-	"github.com/go-chassis/go-chassis/core/invocation"
-	"github.com/go-chassis/go-chassis/core/loadbalancer"
-	"github.com/go-chassis/go-chassis/core/registry"
-	"github.com/go-chassis/go-chassis/pkg/loadbalancing"
-	"github.com/go-chassis/go-chassis/pkg/util/tags"
+	"github.com/go-chassis/go-chassis/v2/core/common"
+	"github.com/go-chassis/go-chassis/v2/core/config"
+	_ "github.com/go-chassis/go-chassis/v2/core/handler"
+	"github.com/go-chassis/go-chassis/v2/core/invocation"
+	"github.com/go-chassis/go-chassis/v2/core/loadbalancer"
+	"github.com/go-chassis/go-chassis/v2/core/registry"
+	"github.com/go-chassis/go-chassis/v2/pkg/loadbalancing"
+	"github.com/go-chassis/go-chassis/v2/pkg/util/tags"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -66,7 +66,7 @@ func TestWeightedResponseStrategy_Pick(t *testing.T) {
 	loadbalancer.SetLatency(1*time.Second, "10.0.0.3:9090", "Server", defaultTags, common.ProtocolHighway)
 	loadbalancer.SetLatency(1*time.Second, "10.0.0.3:9090", "Server", defaultTags, common.ProtocolHighway)
 	loadbalancer.SetLatency(1*time.Second, "10.0.0.3:9090", "Server", defaultTags, common.ProtocolHighway)
-	loadbalancer.Enable(archaius.GetString("cse.loadbalance.strategy.name", ""))
+	loadbalancer.Enable(archaius.GetString("servicecomb.loadbalance.strategy.name", ""))
 	f, _ := loadbalancer.GetStrategyPlugin(loadbalancer.StrategyLatency)
 	s := f()
 	inv := &invocation.Invocation{

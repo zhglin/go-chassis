@@ -2,26 +2,26 @@ package client_test
 
 import (
 	scregistry "github.com/apache/servicecomb-service-center/pkg/registry"
-	"github.com/go-chassis/go-chassis/core/lager"
-	"github.com/go-chassis/go-chassis/pkg/scclient"
+	"github.com/go-chassis/go-chassis/v2/core/lager"
+	"github.com/go-chassis/go-chassis/v2/pkg/scclient"
 	"github.com/stretchr/testify/assert"
 	"testing"
 
-	"github.com/go-chassis/paas-lager"
-	"github.com/go-mesh/openlogging"
+	"github.com/go-chassis/openlog"
+	"github.com/go-chassis/seclog"
 	"os"
 	"time"
 )
 
 func init() {
-	log.Init(log.Config{
+	seclog.Init(seclog.Config{
 		LoggerLevel:   "DEBUG",
 		EnableRsyslog: false,
 		LogFormatText: true,
 		Writers:       []string{"stdout"},
 	})
-	l := log.NewLogger("test")
-	openlogging.SetLogger(l)
+	l := seclog.NewLogger("test")
+	openlog.SetLogger(l)
 }
 func TestLoadbalance(t *testing.T) {
 
@@ -51,7 +51,7 @@ func TestClientInitializeHttpErr(t *testing.T) {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		openlogging.GetLogger().Error("Get hostname failed.")
+		openlog.Error("Get hostname failed.")
 		return
 	}
 	microServiceInstance := &scregistry.MicroServiceInstance{
@@ -219,7 +219,7 @@ func TestRegistryClient_FindMicroServiceInstances(t *testing.T) {
 
 	hostname, err := os.Hostname()
 	if err != nil {
-		openlogging.GetLogger().Error("Get hostname failed.")
+		openlog.Error("Get hostname failed.")
 		return
 	}
 	ms := &scregistry.MicroService{
@@ -368,14 +368,10 @@ func TestRegistryClient_GetDefaultHeaders(t *testing.T) {
 
 	err := registryClient.Initialize(
 		client.Options{
-			Addrs:        []string{"127.0.0.1:30100"},
-			ConfigTenant: "go-sc-tenant",
+			Addrs: []string{"127.0.0.1:30100"},
 		})
 	assert.Nil(t, err)
 
-	header := registryClient.GetDefaultHeaders()
-	tenant := header.Get(client.TenantHeader)
-	assert.Equal(t, tenant, "go-sc-tenant")
 }
 func init() {
 	lager.Init(&lager.Options{

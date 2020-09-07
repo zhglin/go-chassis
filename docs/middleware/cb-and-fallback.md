@@ -10,7 +10,7 @@ it also monitor each service call to make service [observable](https://docs.go-c
 
 1.Import it in your main file
 ```go
-import _ github.com/go-chassis/go-chassis/middleware/circuit
+import _ github.com/go-chassis/go-chassis/v2/middleware/circuit
 ```
 
 2.Learn Configurations
@@ -72,7 +72,7 @@ you can also [custom fallback policy](http://docs.go-chassis.com/dev-guides/circ
 
 ## **Examples**
 ```yaml
-cse:
+servicecomb:
   isolation:
     Consumer:
       timeoutInMilliseconds: 1
@@ -118,7 +118,7 @@ if you want to isolate instance or instance-api,you must set
 bizkeeper-consumer handler in chain after load balancing and before transport
 ,hear is a example
 ```yaml
-cse:
+servicecomb:
   isolation:
     Consumer:
       timeoutInMilliseconds: 1

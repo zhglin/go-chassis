@@ -3,13 +3,15 @@
 package initiator
 
 import (
+	"fmt"
+	"github.com/go-chassis/openlog"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
 
-	"github.com/go-chassis/go-chassis/core/lager"
-	"github.com/go-chassis/go-chassis/pkg/util/fileutil"
+	"github.com/go-chassis/go-chassis/v2/core/lager"
+	"github.com/go-chassis/go-chassis/v2/pkg/util/fileutil"
 )
 
 // LoggerOptions has the configuration about logging
@@ -19,7 +21,7 @@ func init() {
 	InitLogger()
 }
 
-// InitLogger initiate config file and openlogging before other modules
+// InitLogger initiate config file and openlog before other modules
 func InitLogger() {
 	err := ParseLoggerConfig(fileutil.LogConfigPath())
 	//initialize log in any case
@@ -30,7 +32,7 @@ func InitLogger() {
 			Writers:       lager.Stdout,
 		})
 		if os.IsNotExist(err) {
-			lager.Logger.Infof("[%s] not exist", fileutil.LogConfigPath())
+			openlog.Info(fmt.Sprintf("[%s] not exist", fileutil.LogConfigPath()))
 		} else {
 			log.Panicln(err)
 		}

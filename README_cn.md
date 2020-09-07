@@ -1,25 +1,30 @@
-Go-Chassis 是一个go语言的微服务开发框架，帮助你快速开发微服务，完成架构转型
+Go-Chassis 是一个go语言的微服务开发框架，专注于帮你实现云原生应用
 
 ### 为什么使用 Go chassis
 - 强大的中间件 "handler chain":不止拥有 "filter" or "interceptor"的能力. chain中每个handler都可以拿到后面的handler的执行结果，包括业务代码的执行结果。这在很多场景下都很实用，比如:
 
-1.跟踪业务指标，并导出他们让promethues收集。
+1.跟踪业务指标，并导出他们让prometheus收集。
 
 2.跟踪关键的业务执行结果，审计这些信息。
 
 3.分布式调用链追踪，end span可以等到业务执行后在handler中去完善，无需写在业务代码中。
 
-以上场景的共性是帮助你解耦通用功能与业务逻辑，解放业务开发者。否则业务逻辑将于这些通用功能耦合。
+4. 客户端调用远程服务时，也需要进行中间处理，比如客户端负载均衡，请求重试
+
+以上场景的共性是帮助你解耦通用功能与业务逻辑，解放业务开发者。否则业务逻辑将于这些通用功能耦合，你可以将这些工作交给基础设施团队，开发出来的中间件，可以供任何业务团队使用。而业务团队只需要专注于业务逻辑开发。
+
+- go chassis沉淀了许多可信软件所需的特性：开箱即用的限流，校验请求，金丝雀发布，高可用，通信保护等功能
 
 - go chassis被设计为通信协议中立的框架,你可以开发自定义的协议集成到go chassis， 并应用统一的治理能力，如负载均衡，熔断器，限流，流量控制，这些功能使你的服务变得具有韧性，并面向云原生。完全不需要再去自己集成各种方案，使用go chassis只需要通过配置文件来使用这些功能。
 
 - go chassis 使用open tracing与prometheus使调用链与指标可视化
 
-- go chassis 灵活性高，许多组件可以自己定制，比如注册发现，指标上报，调用链追踪 ，分布式配置管理等
+- go chassis 灵活性高，许多组件可以自己定制，比如注册发现，指标上报，调用链追踪，分布式配置管理等
 
-- go chassis是插件化设计，所有的功能都是可插拔的，可以简化到成为一个restful框架。
+- go chassis是插件化设计，所有的功能都是可插拔的，且功能可按需引入，不引入就不会编译到二进制执行文件中。开源三方件依赖很少
 
 # 特性
+
  - **可插拔的注册发现组件**: 当前支持Apache ServiceComb，kubernetes与istio，无论是服务端发现还是客户端注册发现都可以适配。
  - **插件化协议**: 当前支持http，grpc，支持开发者定制私有协议
  - **多端口管理**:  对于同协议，可以开放不同的端口，使用端口来划分API，面向不同调用方
@@ -92,13 +97,4 @@ go mod vendor
 > [欢迎在此登录自己的信息](https://github.com/go-chassis/go-chassis/issues/592)
 
 ![趣头条](https://gss3.bdstatic.com/-Po3dSag_xI4khGkpoWK1HF6hhy/baike/w%3D268%3Bg%3D0/sign=61fc74acb212c8fcb4f3f1cbc438f578/d8f9d72a6059252dc75d1b883f9b033b5ab5b9f7.jpg)
-
-# 使用go chassis开发的开源项目
-- [apache/servicecomb-kie](https://github.com/apache/servicecomb-kie): 
-A distributed configuration management service, go chassis and mesher integrate with it,
-so that user can manage service configurations by this service.
-- [apache/servicecomb-mesher](https://github.com/apache/servicecomb-mesher): 
-A service mesh able to co-work with go chassis, 
-it is able to run as a [API gateway](https://mesher.readthedocs.io/en/latest/configurations/edge.html) also.
-- [KubeEdge](https://github.com/kubeedge/kubeedge): Kubernetes Native Edge Computing Framework (project under CNCF) https://kubeedge.io
 

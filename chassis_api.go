@@ -1,6 +1,8 @@
 package chassis
 
 import (
+	"fmt"
+	"github.com/go-chassis/openlog"
 	"log"
 	"os"
 	"os/signal"
@@ -8,34 +10,33 @@ import (
 	"syscall"
 
 	//init logger first
-	_ "github.com/go-chassis/go-chassis/initiator"
+	_ "github.com/go-chassis/go-chassis/v2/initiator"
 	//load balancing
-	_ "github.com/go-chassis/go-chassis/pkg/loadbalancing"
+	_ "github.com/go-chassis/go-chassis/v2/pkg/loadbalancing"
 	//protocols
-	_ "github.com/go-chassis/go-chassis/client/rest"
-	_ "github.com/go-chassis/go-chassis/server/restful"
+	_ "github.com/go-chassis/go-chassis/v2/client/rest"
+	_ "github.com/go-chassis/go-chassis/v2/server/restful"
 	//routers
-	"github.com/go-chassis/go-chassis/core/common"
-	"github.com/go-chassis/go-chassis/core/config"
-	"github.com/go-chassis/go-chassis/core/handler"
-	"github.com/go-chassis/go-chassis/core/registry"
+	"github.com/go-chassis/go-chassis/v2/core/common"
+	"github.com/go-chassis/go-chassis/v2/core/config"
+	"github.com/go-chassis/go-chassis/v2/core/handler"
+	"github.com/go-chassis/go-chassis/v2/core/registry"
 	//router
-	_ "github.com/go-chassis/go-chassis/core/router/servicecomb"
+	_ "github.com/go-chassis/go-chassis/v2/core/router/servicecomb"
 	//control panel
-	_ "github.com/go-chassis/go-chassis/control/servicecomb"
+	_ "github.com/go-chassis/go-chassis/v2/control/servicecomb"
 	// registry
-	_ "github.com/go-chassis/go-chassis/core/registry/servicecenter"
-	"github.com/go-chassis/go-chassis/core/server"
+	_ "github.com/go-chassis/go-chassis/v2/core/registry/servicecenter"
+	"github.com/go-chassis/go-chassis/v2/core/server"
 	// prometheus reporter for circuit breaker metrics
-	_ "github.com/go-chassis/go-chassis/third_party/forked/afex/hystrix-go/hystrix/reporter"
+	_ "github.com/go-chassis/go-chassis/v2/third_party/forked/afex/hystrix-go/hystrix/reporter"
 	// aes package handles security related plugins
-	_ "github.com/go-chassis/go-chassis/security/cipher/plugins/aes"
-	_ "github.com/go-chassis/go-chassis/security/cipher/plugins/plain"
+	_ "github.com/go-chassis/go-chassis/v2/security/cipher/plugins/aes"
+	_ "github.com/go-chassis/go-chassis/v2/security/cipher/plugins/plain"
 	//config servers
 	_ "github.com/go-chassis/go-archaius/source/remote"
 	_ "github.com/go-chassis/go-archaius/source/remote/kie"
-	"github.com/go-chassis/go-chassis/core/metadata"
-	"github.com/go-mesh/openlogging"
+	"github.com/go-chassis/go-chassis/v2/core/metadata"
 )
 
 var goChassis *chassis
@@ -93,13 +94,13 @@ func HajackGracefulShutdown(f func(os.Signal)) {
 func Run() error {
 	err := goChassis.start()
 	if err != nil {
-		openlogging.Error("run chassis failed:" + err.Error())
+		openlog.Error("run chassis failed:" + err.Error())
 		return err
 	}
 	if !config.GetRegistratorDisable() {
 		//Register instance after Server started
 		if err := registry.DoRegister(); err != nil {
-			openlogging.Error("register instance failed:" + err.Error())
+			openlog.Error("register instance failed:" + err.Error())
 			return err
 		}
 	}
@@ -119,21 +120,21 @@ func waitingSignal() {
 	var s os.Signal
 	select {
 	case s = <-c:
-		openlogging.Info("got os signal " + s.String())
+		openlog.Info("got os signal " + s.String())
 	case err := <-server.ErrRuntime:
-		openlogging.Info("got server error " + err.Error())
+		openlog.Info("got server error " + err.Error())
 	}
 
 	if goChassis.preShutDownFuncs != nil {
 		for k, v := range goChassis.preShutDownFuncs {
-			openlogging.GetLogger().Infof("exec pre shutdownfuncs %s", k)
+			openlog.Info(fmt.Sprintf("exec pre shutdown funcs %s", k))
 			v(s)
 		}
 	}
 	goChassis.hajackGracefulShutdown(s)
 	if goChassis.postShutDownFuncs != nil {
 		for k, v := range goChassis.postShutDownFuncs {
-			openlogging.GetLogger().Infof("exec post shutdownfuncs %s", k)
+			openlog.Info(fmt.Sprintf("exec post shutdown funcs %s", k))
 			v(s)
 		}
 	}
@@ -143,22 +144,22 @@ func waitingSignal() {
 func GracefulShutdown(s os.Signal) {
 	if !config.GetRegistratorDisable() {
 		registry.HBService.Stop()
-		openlogging.Info("unregister servers ...")
+		openlog.Info("unregister servers ...")
 		if err := server.UnRegistrySelfInstances(); err != nil {
-			openlogging.GetLogger().Warnf("servers failed to unregister: %s", err)
+			openlog.Warn("servers failed to unregister: " + err.Error())
 		}
 	}
 
 	for name, s := range server.GetServers() {
-		openlogging.Info("stopping server " + name + "...")
+		openlog.Info("stopping server " + name + "...")
 		err := s.Stop()
 		if err != nil {
-			openlogging.GetLogger().Warnf("servers failed to stop: %s", err)
+			openlog.Warn("servers failed to stop: " + err.Error())
 		}
-		openlogging.Info(name + " server stop success")
+		openlog.Info(name + " server stop success")
 	}
 
-	openlogging.Info("go chassis server gracefully shutdown")
+	openlog.Info("go chassis server gracefully shutdown")
 }
 
 //Init prepare the chassis framework runtime
@@ -187,6 +188,6 @@ func Init() error {
 		log.Println("init chassis fail:", err)
 		return err
 	}
-	openlogging.GetLogger().Infof("init chassis success, version is %s", metadata.SdkVersion)
+	openlog.Info("init chassis success, version is " + metadata.SdkVersion)
 	return nil
 }

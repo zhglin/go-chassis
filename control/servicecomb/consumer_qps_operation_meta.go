@@ -3,7 +3,7 @@ package servicecomb
 import (
 	"strings"
 
-	"github.com/go-chassis/go-chassis/core/common"
+	"github.com/go-chassis/go-chassis/v2/core/common"
 )
 
 // ConsumerKeys contain consumer keys
@@ -20,7 +20,7 @@ type ProviderKeys struct {
 }
 
 //Prefix is const
-const Prefix = "cse.flowcontrol"
+const Prefix = "servicecomb.flowcontrol"
 
 // GetConsumerKey get specific key for consumer
 func GetConsumerKey(sourceName, serviceName, schemaID, OperationID string) *ConsumerKeys {

@@ -2,13 +2,13 @@ package servicecomb
 
 import (
 	"github.com/go-chassis/go-archaius"
-	"github.com/go-chassis/go-chassis/control"
-	"github.com/go-chassis/go-chassis/core/common"
-	"github.com/go-chassis/go-chassis/core/config"
-	"github.com/go-chassis/go-chassis/core/config/model"
-	"github.com/go-chassis/go-chassis/core/invocation"
-	"github.com/go-chassis/go-chassis/resilience/rate"
-	"github.com/go-chassis/go-chassis/third_party/forked/afex/hystrix-go/hystrix"
+	"github.com/go-chassis/go-chassis/v2/control"
+	"github.com/go-chassis/go-chassis/v2/core/common"
+	"github.com/go-chassis/go-chassis/v2/core/config"
+	"github.com/go-chassis/go-chassis/v2/core/config/model"
+	"github.com/go-chassis/go-chassis/v2/core/invocation"
+	"github.com/go-chassis/go-chassis/v2/resilience/rate"
+	"github.com/go-chassis/go-chassis/v2/third_party/forked/afex/hystrix-go/hystrix"
 )
 
 //Panel pull configs from archaius
@@ -53,7 +53,7 @@ func (p *Panel) GetLoadBalancing(inv invocation.Invocation) control.LoadBalancin
 //GetRateLimiting get rate limiting config
 func (p *Panel) GetRateLimiting(inv invocation.Invocation, serviceType string) control.RateLimitingConfig {
 	rl := control.RateLimitingConfig{}
-	rl.Enabled = archaius.GetBool("cse.flowcontrol."+serviceType+".qps.enabled", true)
+	rl.Enabled = archaius.GetBool("servicecomb.flowcontrol."+serviceType+".qps.enabled", true)
 	if serviceType == common.Consumer {
 		keys := GetConsumerKey(inv.SourceMicroService, inv.MicroServiceName, inv.SchemaID, inv.OperationID)
 		rl.Rate, rl.Key = GetQPSRateWithPriority(

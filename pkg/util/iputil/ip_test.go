@@ -1,8 +1,8 @@
 package iputil_test
 
 import (
-	"github.com/go-chassis/go-chassis/core/common"
-	"github.com/go-chassis/go-chassis/pkg/util/iputil"
+	"github.com/go-chassis/go-chassis/v2/core/common"
+	"github.com/go-chassis/go-chassis/v2/pkg/util/iputil"
 	"github.com/stretchr/testify/assert"
 	"net"
 	"net/http"
@@ -10,8 +10,9 @@ import (
 	"testing"
 )
 
-func TestGetLocapIp(t *testing.T) {
+func TestGetLocalIp(t *testing.T) {
 	localip := iputil.GetLocalIP()
+	t.Log(localip)
 	assert.NotNil(t, localip)
 }
 

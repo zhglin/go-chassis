@@ -15,22 +15,29 @@
  * limitations under the License.
  */
 
-package match
+package marker
 
 import (
 	"fmt"
-	"github.com/go-chassis/go-chassis/core/config"
-	"github.com/go-chassis/go-chassis/core/invocation"
-	"github.com/go-chassis/go-chassis/pkg/util/httputil"
-	"github.com/go-mesh/openlogging"
+	"github.com/emicklei/go-restful"
+	"github.com/go-chassis/go-chassis/v2/core/common"
+	"github.com/go-chassis/go-chassis/v2/core/config"
+	"github.com/go-chassis/go-chassis/v2/core/invocation"
+	"github.com/go-chassis/openlog"
 	"gopkg.in/yaml.v2"
+	"net/http"
 	"strings"
 	"sync"
 )
 
+const (
+	Once       = "once"
+	PerService = "perService"
+)
+
 var matches sync.Map
 
-//Operate decide value Match expression or not
+//Operate decide value match expression or not
 type Operate func(value, expression string) bool
 
 var operatorPlugin = map[string]Operate{
@@ -52,20 +59,26 @@ func Install(name string, m Operate) {
 //Mark mark an invocation with matchName by match policy
 func Mark(inv *invocation.Invocation) {
 	matchName := ""
+	policy := "once"
 	matches.Range(func(k, v interface{}) bool {
 		mp, ok := v.(*config.MatchPolicy)
-		if ok {
-			if isMatch(inv, mp) {
-				if name, ok := k.(string); ok {
-					matchName = name
-					return false
-				}
+		if !ok {
+			return true
+		}
+		if isMatch(inv, mp) {
+			if name, ok := k.(string); ok {
+				matchName = name
+				policy = mp.TrafficMarkPolicy
+				return false
 			}
 		}
 		return true
 	})
 	if matchName != "" {
-		//openlogging.GetLogger().Infof("the invocation math policy %s", matchName)
+		//the invocation math policy
+		if policy == Once {
+			inv.SetHeader(common.HeaderMark, matchName)
+		}
 		inv.Mark(matchName)
 	}
 }
@@ -74,10 +87,13 @@ func isMatch(inv *invocation.Invocation, matchPolicy *config.MatchPolicy) bool {
 	if !headsMatch(inv.Headers(), matchPolicy.Headers) {
 		return false
 	}
-
-	req, err := httputil.HTTPRequest(inv)
-	if err != nil {
-		openlogging.Warn("get request error: " + err.Error())
+	var req *http.Request
+	switch r := inv.Args.(type) {
+	case *http.Request:
+		req = r
+	case *restful.Request:
+		req = r.Request
+	default:
 		return false
 	}
 
@@ -105,7 +121,6 @@ func apiMatch(apiPath string, apiPolicy map[string]string) bool {
 }
 
 func headsMatch(headers map[string]string, headPolicy map[string]map[string]string) bool {
-
 	for key, policy := range headPolicy {
 		val := headers[key]
 		if val == "" {
@@ -120,23 +135,27 @@ func headsMatch(headers map[string]string, headPolicy map[string]map[string]stri
 	return true
 }
 
-//Match compare value and expression
-func Match(strategy, value, expression string) (bool, error) {
-	f, ok := operatorPlugin[strategy]
+//match compare value and expression
+func Match(operator, value, expression string) (bool, error) {
+	f, ok := operatorPlugin[operator]
 	if !ok {
-		return false, fmt.Errorf("invalid Match method")
+		return false, fmt.Errorf("invalid match method")
 	}
 	return f(value, expression), nil
 }
 
-//SaveMatchPolicy saves Match policy
-func SaveMatchPolicy(value string, k string, name string) {
+//SaveMatchPolicy saves match policy
+func SaveMatchPolicy(value string, k string, name string) error {
 	m := &config.MatchPolicy{}
 	err := yaml.Unmarshal([]byte(value), m)
 	if err != nil {
-		openlogging.Warn("invalid policy:" + k)
-		return
+		openlog.Error("invalid policy " + k + ":" + err.Error())
+		return err
 	}
-	openlogging.GetLogger().Debugf("get policy %s %v", name, m)
+	openlog.Info("add match policy", openlog.WithTags(openlog.Tags{
+		"module": "marker",
+		"event":  "update",
+	}))
 	matches.Store(name, m)
+	return nil
 }
