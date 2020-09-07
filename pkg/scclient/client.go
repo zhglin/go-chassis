@@ -196,14 +196,7 @@ func (c *RegistryClient) GetDefaultHeaders() http.Header {
 		HeaderUserAgent:   []string{"cse-serviceregistry-client/1.0.0"},
 		TenantHeader:      []string{"default"},
 	}
-<<<<<<< HEAD
-	//设置tenant 服务端会读取
-	if c.Config.Tenant != "" {
-		headers.Set(TenantHeader, c.Config.Tenant)
-	}
-=======
 
->>>>>>> master
 	return headers
 }
 
