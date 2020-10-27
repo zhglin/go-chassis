@@ -19,13 +19,12 @@ import (
 func init() {
 
 	lager.Init(&lager.Options{
-		LoggerLevel:   "INFO",
-		RollingPolicy: "size",
+		LoggerLevel: "INFO",
 	})
 	config.HystrixConfig = &model.HystrixConfigWrapper{
-		HystrixConfig: &model.HystrixConfig{
-			IsolationProperties: &model.IsolationWrapper{
-				Consumer: &model.IsolationSpec{},
+		HystrixConfig: model.HystrixConfig{
+			IsolationProperties: model.IsolationWrapper{
+				Consumer: model.IsolationSpec{},
 			},
 		},
 	}
@@ -180,8 +179,8 @@ func TestSetTimeoutToClientCache(t *testing.T) {
 	assert.NotEmpty(t, c)
 	assert.Nil(t, err)
 
-	spec := &model.IsolationWrapper{
-		Consumer: &model.IsolationSpec{
+	spec := model.IsolationWrapper{
+		Consumer: model.IsolationSpec{
 			TimeoutInMilliseconds: config.DefaultTimeout,
 		},
 	}

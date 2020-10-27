@@ -50,7 +50,7 @@ servicecomb:
     version: 0.1`
 	circuitContent :=
 		`
-servicecomb:
+cse:
   isolation:
     Consumer:
       timeoutInMilliseconds: 1000
@@ -149,8 +149,7 @@ func TestBizKeeperHandler_Names(t *testing.T) {
 }
 func init() {
 	lager.Init(&lager.Options{
-		LoggerLevel:   "INFO",
-		RollingPolicy: "size",
+		LoggerLevel: "INFO",
 	})
 }
 func BenchmarkBizKeepConsumerHandler_Handler(b *testing.B) {

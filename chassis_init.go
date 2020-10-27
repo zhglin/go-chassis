@@ -35,7 +35,7 @@ import (
 	"github.com/go-chassis/go-chassis/v2/core/router"
 	"github.com/go-chassis/go-chassis/v2/core/server"
 	"github.com/go-chassis/go-chassis/v2/core/tracing"
-	"github.com/go-chassis/go-chassis/v2/eventlistener"
+
 	"github.com/go-chassis/go-chassis/v2/pkg/backends/quota"
 	"github.com/go-chassis/go-chassis/v2/pkg/metrics"
 	"github.com/go-chassis/go-chassis/v2/pkg/runtime"
@@ -134,7 +134,7 @@ func (c *chassis) initialize() error {
 		if err != nil {
 			return err
 		}
-		strategyName := archaius.GetString("servicecomb.loadbalance.strategy.name", "")
+		strategyName := archaius.GetString("cse.loadbalance.strategy.name", "")
 		if err := loadbalancer.Enable(strategyName); err != nil {
 			return err
 		}
@@ -161,7 +161,6 @@ func (c *chassis) initialize() error {
 		return err
 	}
 
-	eventlistener.Init()
 	if err := initBackendPlugins(); err != nil {
 		return err
 	}

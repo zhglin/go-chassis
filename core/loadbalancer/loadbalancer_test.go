@@ -22,13 +22,12 @@ import (
 
 func init() {
 	lager.Init(&lager.Options{
-		LoggerLevel:   "INFO",
-		RollingPolicy: "size",
+		LoggerLevel: "INFO",
 	})
 	archaius.Init(archaius.WithMemorySource())
 	archaius.Set("servicecomb.registry.address", "http://127.0.0.1:30100")
 	runtime.App = "default"
-	archaius.Set("servicecomb.loadbalance.strategy.name", loadbalancer.StrategyRoundRobin)
+	archaius.Set("cse.loadbalance.strategy.name", loadbalancer.StrategyRoundRobin)
 	archaius.Set("servicecomb.service.name", "Client")
 	archaius.Set("servicecomb.service.hostname", "localhost")
 	config.ReadGlobalConfigFromArchaius()
@@ -39,17 +38,17 @@ func TestEnable(t *testing.T) {
 
 	LBstr["name"] = "RoundRobin"
 	config.GetLoadBalancing().Strategy = LBstr
-	loadbalancer.Enable(archaius.GetString("servicecomb.loadbalance.strategy.name", ""))
+	loadbalancer.Enable(archaius.GetString("cse.loadbalance.strategy.name", ""))
 	assert.Equal(t, "RoundRobin", config.GetLoadBalancing().Strategy["name"])
 
 	LBstr["name"] = ""
 	config.GetLoadBalancing().Strategy = LBstr
-	loadbalancer.Enable(archaius.GetString("servicecomb.loadbalance.strategy.name", ""))
+	loadbalancer.Enable(archaius.GetString("cse.loadbalance.strategy.name", ""))
 	assert.Equal(t, "", config.GetLoadBalancing().Strategy["name"])
 
 	LBstr["name"] = "ABC"
 	config.GetLoadBalancing().Strategy = LBstr
-	loadbalancer.Enable(archaius.GetString("servicecomb.loadbalance.strategy.name", ""))
+	loadbalancer.Enable(archaius.GetString("cse.loadbalance.strategy.name", ""))
 	assert.Equal(t, "ABC", config.GetLoadBalancing().Strategy["name"])
 
 }
@@ -102,7 +101,7 @@ func TestBuildStrategy(t *testing.T) {
 
 	_, _, err = registry.DefaultRegistrator.RegisterServiceAndInstance(testData1[0], testData2[1])
 	assert.NoError(t, err)
-	loadbalancer.Enable(archaius.GetString("servicecomb.loadbalance.strategy.name", ""))
+	loadbalancer.Enable(archaius.GetString("cse.loadbalance.strategy.name", ""))
 	registry.Enable()
 	registry.DoRegister()
 	runtime.ServiceID = sid
@@ -146,7 +145,7 @@ func BenchmarkDefaultSelector_Select(b *testing.B) {
 	os.Setenv("CHASSIS_HOME", filepath.Join(p, "src", "github.com", "go-chassis", "go-chassis", "examples", "discovery", "client"))
 	registry.Enable()
 	registry.DoRegister()
-	loadbalancer.Enable(archaius.GetString("servicecomb.loadbalance.strategy.name", ""))
+	loadbalancer.Enable(archaius.GetString("cse.loadbalance.strategy.name", ""))
 	testData1 := []*registry.MicroService{
 		{
 			ServiceName: "test2",

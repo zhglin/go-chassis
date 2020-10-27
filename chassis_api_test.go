@@ -37,7 +37,7 @@ controlPanel:
   infra: istio
   settings:
     Address: xxx
-servicecomb:
+cse:
   flowcontrol:
     Consumer:
       qps:
@@ -54,6 +54,7 @@ servicecomb:
       kind: constant
       minMs: 200
       maxMs: 400
+servicecomb:
   registry:
     type: servicecenter
     scope: full
@@ -98,8 +99,7 @@ servicecomb:
 `)
 
 	lager.Init(&lager.Options{
-		LoggerLevel:   "INFO",
-		RollingPolicy: "size",
+		LoggerLevel: "INFO",
 	})
 
 	config.GlobalDefinition = &model.GlobalCfg{}
@@ -147,7 +147,6 @@ func TestInitError(t *testing.T) {
 	os.Setenv("CHASSIS_HOME", p)
 
 	lager.Init(&lager.Options{
-		LoggerLevel:   "INFO",
-		RollingPolicy: "size",
+		LoggerLevel: "INFO",
 	})
 }

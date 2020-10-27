@@ -1,4 +1,4 @@
-package eventlistener
+package servicecomb
 
 import (
 	"github.com/go-chassis/go-archaius/event"
@@ -12,7 +12,7 @@ import (
 
 const (
 	//LagerLevelKey is a variable of type string
-	LagerLevelKey = "logger_level"
+	LagerLevelKey = "logLevel"
 )
 
 //LagerEventListener is a struct used for Event listener
