@@ -26,6 +26,7 @@ type RestInvoker struct {
 }
 
 // NewRestInvoker is gives the object of rest invoker
+// rest的Invoker
 func NewRestInvoker(opt ...Option) *RestInvoker {
 	opts := newOptions(opt...)
 
@@ -43,8 +44,9 @@ func (ri *RestInvoker) ContextDo(ctx context.Context, req *http.Request, options
 	if req.URL.Scheme != HTTP {
 		return nil, fmt.Errorf("scheme invalid: %s, only support {http}://", req.URL.Scheme)
 	}
+	// 设置consumer
 	common.SetXCSEContext(map[string]string{common.HeaderSourceName: runtime.ServiceName}, req)
-	// set headers to Ctx
+	// set headers to Ctx  headers设置到context中
 	if len(req.Header) > 0 {
 		m, ok := ctx.Value(common.ContextHeaderKey{}).(map[string]string)
 		if !ok {
@@ -64,7 +66,7 @@ func (ri *RestInvoker) ContextDo(ctx context.Context, req *http.Request, options
 	resp := rest.NewResponse()
 
 	inv := invocation.New(ctx)
-
+	// option转到invocation
 	wrapInvocationWithOpts(inv, opts)
 	inv.MicroServiceName = service
 	//TODO load from openAPI schema
@@ -77,6 +79,7 @@ func (ri *RestInvoker) ContextDo(ctx context.Context, req *http.Request, options
 	inv.Reply = resp
 	inv.URLPathFormat = req.URL.Path
 
+	// 设置invoker的metadata
 	inv.SetMetadata(common.RestMethod, req.Method)
 
 	err := ri.invoke(inv)

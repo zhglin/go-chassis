@@ -56,6 +56,7 @@ func GetSuccessiveFailureCount(cookieValue string) int {
 }
 
 //SessionStickinessStrategy is strategy
+// 会话绑定
 type SessionStickinessStrategy struct {
 	instances []*registry.MicroServiceInstance
 	mtx       sync.Mutex
@@ -100,6 +101,8 @@ func (r *SessionStickinessStrategy) Pick() (*registry.MicroServiceInstance, erro
 	return r.pick()
 
 }
+
+// 随机选个
 func (r *SessionStickinessStrategy) pick() (*registry.MicroServiceInstance, error) {
 	if len(r.instances) == 0 {
 		return nil, ErrNoneAvailableInstance

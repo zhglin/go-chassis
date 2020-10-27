@@ -68,6 +68,7 @@ func Init() error {
 
 //GetConfigServerEndpoint will read local config server uri first, if there is not,
 // it will try to discover config server from registry
+// 从serverCenter中获取配置中心address
 func GetConfigServerEndpoint() (string, error) {
 	configServerURL := config.GetConfigServerConf().ServerURI
 	if configServerURL == "" {

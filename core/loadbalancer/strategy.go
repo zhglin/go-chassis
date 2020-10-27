@@ -8,8 +8,9 @@ import (
 	"github.com/go-chassis/openlog"
 )
 
+// 支持的所有balancer方式
 var strategies = make(map[string]func() Strategy)
-var i int
+var i int // session_stickiness使用
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
@@ -18,12 +19,14 @@ func init() {
 }
 
 // InstallStrategy install strategy
+// 添加loadBalancer组件
 func InstallStrategy(name string, s func() Strategy) {
 	strategies[name] = s
 	openlog.Debug(fmt.Sprintf("installed strategy plugin: %s.", name))
 }
 
 // GetStrategyPlugin get strategy plugin
+// 获取指定的 balance strategy
 func GetStrategyPlugin(name string) (func() Strategy, error) {
 	s, ok := strategies[name]
 	if !ok {

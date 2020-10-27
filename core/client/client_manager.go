@@ -95,6 +95,8 @@ func CreateClient(protocol, service, endpoint string, sslEnable bool) (ProtocolC
 		Endpoint:  endpoint,
 	})
 }
+
+// client中的key
 func generateKey(protocol, service, endpoint string) string {
 	return protocol + service + endpoint
 }
@@ -121,6 +123,7 @@ func GetClient(i *invocation.Invocation) (ProtocolClient, error) {
 }
 
 //Close close a client conn
+// 关闭一个节点链接
 func Close(protocol, service, endpoint string) error {
 	key := generateKey(protocol, service, endpoint)
 	sl.RLock()
@@ -129,6 +132,8 @@ func Close(protocol, service, endpoint string) error {
 	if !ok {
 		return ErrClientNotExist
 	}
+
+	// 关闭链接
 	if err := c.Close(); err != nil {
 		openlog.Error(fmt.Sprintf("can not close client %s:%s%s, err [%s]", protocol, service, endpoint, err.Error()))
 		return err

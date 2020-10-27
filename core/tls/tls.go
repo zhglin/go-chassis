@@ -13,6 +13,8 @@ import (
 )
 
 var errSSLConfigNotExist = errors.New("No SSL config")
+
+// 内部的ssl配置
 var useDefaultSslTag = sets.NewString(
 	"registry.Consumer.",
 	"configServer.Consumer.",
@@ -34,6 +36,7 @@ func hasDefaultSslTag(tag string) bool {
 	return false
 }
 
+// 默认的ssl配置
 func getDefaultSslConfigMap() map[string]string {
 	cipherSuits := []string{}
 	for k := range TLSCipherSuiteMap {
@@ -54,8 +57,11 @@ func getDefaultSslConfigMap() map[string]string {
 	return defaultSslConfigMap
 }
 
+// 获取指定tag的ssl的配置
 func getSSLConfigMap(tag string) map[string]string {
+	// 配置的ssl
 	sslConfigMap := config.GlobalDefinition.Ssl
+	// 默认的ssl
 	defaultSslConfigMap := getDefaultSslConfigMap()
 	result := make(map[string]string)
 

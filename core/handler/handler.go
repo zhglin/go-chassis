@@ -36,6 +36,7 @@ const (
 )
 
 // init is for to initialize the all handlers at boot time
+// 初始化 设置所有handler对应的创建函数
 func init() {
 	//register build-in handler,don't need to call RegisterHandlerFunc
 	HandlerFuncMap[Transport] = newTransportHandler
@@ -48,6 +49,7 @@ func init() {
 }
 
 // Handler interface for handlers
+// handler接口
 type Handler interface {
 	// handle invocation transportation,and tr response
 	Handle(*Chain, *invocation.Invocation, invocation.ResponseCallBack)
@@ -64,6 +66,7 @@ func WriteBackErr(err error, status int, cb invocation.ResponseCallBack) {
 }
 
 // RegisterHandler Let developer custom handler
+// 动态注册handler
 func RegisterHandler(name string, f func() Handler) error {
 	if stringutil.StringInSlice(name, buildIn) {
 		return errViolateBuildIn
@@ -77,6 +80,7 @@ func RegisterHandler(name string, f func() Handler) error {
 }
 
 // CreateHandler create a new handler by name your registered
+// 创建指定name的handler
 func CreateHandler(name string) (Handler, error) {
 	f := HandlerFuncMap[name]
 	if f == nil {

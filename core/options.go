@@ -25,8 +25,8 @@ type InvokeOptions struct {
 	// end to end, Directly call
 	Endpoint string
 	// end to end, Directly call
-	Protocol string
-	Port     string
+	Protocol string // 协议 rest
+	Port     string // 端口号
 	//loadbalancer stratery
 	//StrategyFunc loadbalancer.Strategy
 	StrategyFunc string
@@ -70,7 +70,7 @@ func DefaultCallOptions(io InvokeOptions) Option {
 	}
 }
 
-// Option used by the invoker
+// Option used by the invoker invoker的选项
 type Option func(*Options)
 
 // InvocationOption is a requestOption used by invocation

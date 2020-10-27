@@ -36,11 +36,13 @@ type Panel interface {
 }
 
 //InstallPlugin install implementation
+// 注册panel插件
 func InstallPlugin(name string, f func(options Options) Panel) {
 	panelPlugin[name] = f
 }
 
 //Init initialize DefaultPanel
+// 初始化panel
 func Init(opts Options) error {
 	infra := opts.Infra
 	if infra == "" {

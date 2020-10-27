@@ -30,13 +30,16 @@ const (
 )
 
 // CacheManager cache manager
+// cache 管理
 type CacheManager struct {
 	registryClient *client.RegistryClient
 }
 
 // AutoSync automatically sync the running instances
 func (c *CacheManager) AutoSync() {
+	// 刷新cache service 的 instance
 	c.refreshCache()
+	// watch 自身service
 	if config.GetServiceDiscoveryWatch() {
 		err := c.registryClient.WatchMicroService(runtime.ServiceID, watch)
 		if err != nil {
@@ -44,6 +47,7 @@ func (c *CacheManager) AutoSync() {
 		}
 		openlog.Debug("Watching Instances change events.")
 	}
+	// 定时刷新 refreshCache
 	var ticker *time.Ticker
 	refreshInterval := config.GetServiceDiscoveryRefreshInterval()
 	if refreshInterval == "" {
@@ -56,7 +60,7 @@ func (c *CacheManager) AutoSync() {
 		}
 		ticker = time.NewTicker(timeValue)
 	}
-	go func() {
+	go func() { // 定时
 		for range ticker.C {
 			c.refreshCache()
 		}
@@ -64,13 +68,17 @@ func (c *CacheManager) AutoSync() {
 }
 
 // refreshCache refresh cache
+// 刷新cache
 func (c *CacheManager) refreshCache() {
+	// 是否刷新serviceCenter节点的address地址
 	if archaius.GetBool("servicecomb.registry.autodiscovery", false) {
 		err := c.registryClient.SyncEndpoints()
 		if err != nil {
 			openlog.Error(fmt.Sprintf("get sc endpoints failed: %s", err))
 		}
 	}
+
+	// 重置依赖service的instance
 	err := c.pullMicroServiceInstance()
 	if err != nil {
 		openlog.Error(fmt.Sprintf("AutoUpdateMicroserviceInstance failed: %s", err))
@@ -207,10 +215,12 @@ func checkIfMicroServiceExistInList(microserviceList []*scregistry.MicroService,
 }
 
 // pullMicroServiceInstance pull micro-service instance
+// 拉取instance
 func (c *CacheManager) pullMicroServiceInstance() error {
 	//Get Providers
 	services := GetCriteria()
 	serviceNameSet, _ := getServiceSet(services)
+	// 清理instance
 	c.compareAndDeleteOutdatedProviders(serviceNameSet)
 	if len(services) == 0 {
 		openlog.Info("no providers")
@@ -231,6 +241,7 @@ func (c *CacheManager) pullMicroServiceInstance() error {
 	return nil
 }
 
+// 清理不再依赖的service的instance
 func (c *CacheManager) compareAndDeleteOutdatedProviders(newProviders sets.String) {
 	oldProviders := registry.MicroserviceInstanceIndex.FullCache().Items()
 	for old := range oldProviders {
@@ -250,7 +261,7 @@ func getServiceSet(exist []*scregistry.FindService) (sets.String, map[string]set
 		return serviceNameSet, serviceNameAppIDKeySet
 	}
 	for _, service := range exist {
-		if service == nil {
+		if service == nil { //空指针
 			openlog.Warn("FindService info is empty")
 			continue
 		}
@@ -272,11 +283,12 @@ func getServiceSet(exist []*scregistry.FindService) (sets.String, map[string]set
 
 //set app into instance metadata, split instances into ups and downs
 //set instance to cache by service name
+// 过滤instance的status 并设置cache
 func filter(providerInstances map[string][]*registry.MicroServiceInstance) {
 	//append instances from different app and same service name into one unified slice
-	downs := make(map[string]struct{})
+	downs := make(map[string]struct{}) // 离线
 	for serviceName, instances := range providerInstances {
-		up := make([]*registry.MicroServiceInstance, 0)
+		up := make([]*registry.MicroServiceInstance, 0) //在线
 		for _, ins := range instances {
 			switch {
 			case ins.Version == "":
@@ -317,6 +329,7 @@ func watch(response *client.MicroServiceInstanceChangedEvent) {
 }
 
 // createAction added micro-service instance to the cache
+// 事件监听 create事件
 func createAction(response *client.MicroServiceInstanceChangedEvent) {
 	key := response.Key.ServiceName
 	microServiceInstances, ok := registry.MicroserviceInstanceIndex.Get(key, nil)
@@ -328,6 +341,8 @@ func createAction(response *client.MicroServiceInstanceChangedEvent) {
 		openlog.Warn(fmt.Sprintf("createAction failed,MicroServiceInstance status is not MSI_UP,MicroServiceInstanceChangedEvent = %v", response))
 		return
 	}
+
+	// 追加新建的instance
 	msi := ToMicroServiceInstance(response.Instance).WithAppID(response.Key.AppId)
 	microServiceInstances = append(microServiceInstances, msi)
 	registry.MicroserviceInstanceIndex.Set(key, microServiceInstances)
@@ -335,6 +350,7 @@ func createAction(response *client.MicroServiceInstanceChangedEvent) {
 }
 
 // deleteAction delete micro-service instance
+// 事件监听 delete事件
 func deleteAction(response *client.MicroServiceInstanceChangedEvent) {
 	key := response.Key.ServiceName
 	openlog.Debug(fmt.Sprintf("Received event EVT_DELETE, sid = %s, endpoints = %s", response.Instance.ServiceId, response.Instance.Endpoints))
@@ -346,6 +362,8 @@ func deleteAction(response *client.MicroServiceInstanceChangedEvent) {
 		openlog.Error(fmt.Sprintf("ServiceID does not exist in MicroserviceInstanceCache, action is EVT_DELETE, key = %s", key))
 		return
 	}
+
+	// 删除instance
 	var newInstances = make([]*registry.MicroServiceInstance, 0)
 	for _, v := range microServiceInstances {
 		if v.InstanceID != response.Instance.InstanceId {
@@ -358,6 +376,7 @@ func deleteAction(response *client.MicroServiceInstanceChangedEvent) {
 }
 
 // updateAction update micro-service instance event
+// 事件监听 update事件
 func updateAction(response *client.MicroServiceInstanceChangedEvent) {
 	key := response.Key.ServiceName
 	microServiceInstances, ok := registry.MicroserviceInstanceIndex.Get(key, nil)
@@ -365,6 +384,8 @@ func updateAction(response *client.MicroServiceInstanceChangedEvent) {
 		openlog.Error(fmt.Sprintf("ServiceID does not exist in MicroserviceInstanceCache, action is EVT_UPDATE, sid = %s", key))
 		return
 	}
+
+	// 不是上线状态
 	if response.Instance.Status != client.MSInstanceUP {
 		openlog.Warn(fmt.Sprintf("updateAction failed, MicroServiceInstance status is not MSI_UP, MicroServiceInstanceChangedEvent = %v", response))
 		return
@@ -378,6 +399,8 @@ func updateAction(response *client.MicroServiceInstanceChangedEvent) {
 			arrayNum = k
 		}
 	}
+
+	// 存在的修改 不存在就新加
 	switch iidExist {
 	case InstanceIDIsExist:
 		microServiceInstances[arrayNum] = msi

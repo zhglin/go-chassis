@@ -17,7 +17,9 @@ var errEmptyServiceIDFromRegistry = errors.New("got empty serviceID from registr
 var InstanceEndpoints = make(map[string]string)
 
 // RegisterService register micro-service
+// 注册当前服务
 func RegisterService() error {
+	// service配置信息
 	service := config.MicroserviceDefinition
 	if e := service.Environment; e != "" {
 		openlog.Info(fmt.Sprintf("Microservice environment: [%s]", e))
@@ -73,6 +75,8 @@ func RegisterService() error {
 		// support key format with appid, like 'servicecomb.loadbalance.{alias}.strategy.name'.
 		microservice.Alias = microservice.AppID + ":" + microservice.ServiceName
 	}
+
+	// 是否允许被别的service依赖
 	if config.GetRegistratorScope() == common.ScopeFull {
 		microservice.Metadata["allowCrossApp"] = common.TRUE
 		service.Properties["allowCrossApp"] = common.TRUE
@@ -83,6 +87,7 @@ func RegisterService() error {
 	openlog.Info(fmt.Sprintf("framework registered is [ %s:%s ]", framework.Name, framework.Version))
 	openlog.Info(fmt.Sprintf("micro service registered by [ %s ]", framework.Register))
 
+	// 注册
 	sid, err := DefaultRegistrator.RegisterService(microservice)
 	if err != nil {
 		openlog.Error(fmt.Sprintf("register service [%s] failed: %s", microservice.ServiceName, err))

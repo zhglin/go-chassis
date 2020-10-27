@@ -41,11 +41,11 @@ type MicroServiceInstance struct {
 	InstanceID      string               `json:"instanceID"`
 	HostName        string               `json:"hostName"`
 	ServiceID       string               `json:"serviceID"`
-	DefaultProtocol string               `json:"defaultProtocol"`
-	DefaultEndpoint string               `json:"defaultEndpoint"`
+	DefaultProtocol string               `json:"defaultProtocol"`// 默认的protocol
+	DefaultEndpoint string               `json:"defaultEndpoint"` // 默认的address
 	Status          string               `json:"status"`
 	EndpointsMap    map[string]*Endpoint `json:"endpointsMap"`
-	Metadata        map[string]string    `json:"metadata"`
+	Metadata        map[string]string    `json:"metadata"` // key [version=>1.2.3， app=>appId]
 	DataCenterInfo  *DataCenterInfo      `json:"dataCenterInfo"`
 }
 
@@ -53,6 +53,7 @@ func (m *MicroServiceInstance) appID() string   { return m.Metadata[common.Build
 func (m *MicroServiceInstance) version() string { return m.Metadata[common.BuildinTagVersion] }
 
 // Has return whether microservice has tags
+// 判断metadata中是否有指定的kv
 func (m *MicroServiceInstance) Has(tags map[string]string) bool {
 	for k, v := range tags {
 		if mt, ok := m.Metadata[k]; !ok || mt != v {
@@ -63,6 +64,7 @@ func (m *MicroServiceInstance) Has(tags map[string]string) bool {
 }
 
 // WithAppID add app tag for microservice instance
+// 设置appId
 func (m *MicroServiceInstance) WithAppID(v string) *MicroServiceInstance {
 	m.Metadata[common.BuildinTagApp] = v
 	return m

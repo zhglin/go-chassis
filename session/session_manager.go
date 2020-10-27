@@ -26,6 +26,7 @@ var Cache *cache.Cache
 // SessionStickinessCache key: go-chassisLB , value is cookie
 var SessionStickinessCache *cache.Cache
 
+// session管理器
 func init() {
 	Cache = initCache()
 	SessionStickinessCache = initCache()
@@ -254,15 +255,18 @@ func GetSessionCookie(ctx context.Context, resp *http.Response) string {
 func AddSessionStickinessToCache(cookie, namespace string) {
 	key := getSessionStickinessCacheKey(namespace)
 	value, ok := SessionStickinessCache.Get(key)
+	// 不存在直接设置
 	if !ok || value == nil {
 		SessionStickinessCache.Set(key, cookie, 0)
 		return
 	}
+	// 已存在 不是字符串类型 直接覆盖
 	s, ok := value.(string)
 	if !ok {
 		SessionStickinessCache.Set(key, cookie, 0)
 		return
 	}
+	// 已存在 已改变 直接覆盖
 	if cookie != "" && s != cookie {
 		SessionStickinessCache.Set(key, cookie, 0)
 	}
@@ -291,6 +295,7 @@ func getSessionStickinessCacheKey(namespace string) string {
 }
 
 // GetSessionIDFromInv when use  SessionStickiness , get session id from inv
+// 从response中提取cookie
 func GetSessionIDFromInv(inv invocation.Invocation, key string) string {
 	var metadata interface{}
 	switch inv.Reply.(type) {

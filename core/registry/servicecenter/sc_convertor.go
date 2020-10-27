@@ -58,6 +58,7 @@ func ToSCService(cs *registry.MicroService) *scregistry.MicroService {
 }
 
 // ToMicroServiceInstance assign model micro-service instance parameters to registry micro-service instance parameters
+// 转换 sc中的instance 转换 到MicroServiceInstance
 func ToMicroServiceInstance(ins *scregistry.MicroServiceInstance) *registry.MicroServiceInstance {
 	msi := &registry.MicroServiceInstance{
 		InstanceID: ins.InstanceId,
@@ -67,6 +68,8 @@ func ToMicroServiceInstance(ins *scregistry.MicroServiceInstance) *registry.Micr
 	}
 	m, p := registry.GetProtocolMap(ins.Endpoints)
 	msi.EndpointsMap = m
+
+	// Endpoints的最后一个作为default
 	if len(m) != 0 {
 		msi.DefaultEndpoint = m[p].GenEndpoint()
 		msi.DefaultProtocol = p
@@ -81,7 +84,7 @@ func ToMicroServiceInstance(ins *scregistry.MicroServiceInstance) *registry.Micr
 	if msi.Metadata == nil {
 		msi.Metadata = make(map[string]string)
 	}
-	msi.Metadata["version"] = ins.Version
+	msi.Metadata["version"] = ins.Version // 用于搜索
 	return msi
 }
 

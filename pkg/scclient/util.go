@@ -5,6 +5,7 @@ import (
 	"net/url"
 )
 
+// 格式化instance的Endpoints  scheme://host
 func getProtocolMap(eps []string) map[string]string {
 	m := make(map[string]string)
 	for _, ep := range eps {

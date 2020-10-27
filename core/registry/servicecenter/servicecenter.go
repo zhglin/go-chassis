@@ -27,11 +27,14 @@ type Registrator struct {
 func (r *Registrator) RegisterService(ms *registry.MicroService) (string, error) {
 	serviceKey := registry.Microservice2ServiceKeyStr(ms)
 	microservice := ToSCService(ms)
+	// 校验是否存在
 	sid, err := r.registryClient.GetMicroServiceID(microservice.AppId, microservice.ServiceName, microservice.Version, microservice.Environment)
 	if err != nil {
 		openlog.Error(fmt.Sprintf("Get service [%s] failed, err %s", serviceKey, err))
 		return "", err
 	}
+
+	// 不存在 注册
 	if sid == "" {
 		openlog.Warn(fmt.Sprintf("service [%s] not exists in registry, register it", serviceKey))
 		sid, err = r.registryClient.RegisterService(microservice)
@@ -231,6 +234,7 @@ func (r *ServiceDiscovery) GetMicroServiceInstances(consumerID, providerID strin
 }
 
 // FindMicroServiceInstances find micro-service instances
+// 获取service的instance
 func (r *ServiceDiscovery) FindMicroServiceInstances(consumerID, microServiceName string, tags utiltags.Tags) ([]*registry.MicroServiceInstance, error) {
 	// TODO: wrap default tags for service center
 	// because sc need version and appID to generate tags
@@ -240,8 +244,10 @@ func (r *ServiceDiscovery) FindMicroServiceInstances(consumerID, microServiceNam
 	if appID == "" {
 		appID = runtime.App
 	}
+	// 设置依赖cache
 	registry.AddProviderToCache(microServiceName, appID)
 	if !boo || microServiceInstance == nil {
+		// 参数处理以及sc调用
 		criteria := GetCriteriaByService(microServiceName)
 		openlog.Warn(fmt.Sprintf("%s Get instances from remote, key: %s:%s:%s", consumerID, appID, microServiceName, tags.Version()))
 		providerInstancesResponse, err := r.registryClient.BatchFindInstances(consumerID, criteria)
@@ -249,6 +255,7 @@ func (r *ServiceDiscovery) FindMicroServiceInstances(consumerID, microServiceNam
 			return nil, fmt.Errorf("FindMicroServiceInstances failed, ProviderID: %s, err: %s", microServiceName, err)
 		}
 		providerInstances := RegroupInstances(criteria, providerInstancesResponse)
+		// 过滤状态并设置cache
 		filter(providerInstances)
 		microServiceInstance, boo = registry.MicroserviceInstanceIndex.Get(microServiceName, tags.KV)
 		if !boo || microServiceInstance == nil {
@@ -261,17 +268,19 @@ func (r *ServiceDiscovery) FindMicroServiceInstances(consumerID, microServiceNam
 }
 
 //RegroupInstances organize raw data to better format
+// 解析findService结果  map[serviceName][]instance
 func RegroupInstances(keys []*scregistry.FindService, response *scregistry.BatchFindInstancesResponse) map[string][]*registry.MicroServiceInstance {
 	instanceMap := make(map[string][]*registry.MicroServiceInstance)
 	if response.Services != nil {
+		// 已变更的service
 		for _, result := range response.Services.Updated {
 			if len(result.Instances) == 0 {
 				continue
 			}
 			for _, instance := range result.Instances {
 				ni := ToMicroServiceInstance(instance)
-				ni.App = keys[result.Index].Service.AppId
-				ni.Version = keys[result.Index].Service.Version
+				ni.App = keys[result.Index].Service.AppId		// appId
+				ni.Version = keys[result.Index].Service.Version	// version
 				instances, ok := instanceMap[keys[result.Index].Service.ServiceName]
 				if !ok {
 					instances = []*registry.MicroServiceInstance{ni}
@@ -296,6 +305,7 @@ func (r *ServiceDiscovery) WatchMicroService(selfMicroServiceID string, callback
 }
 
 // AutoSync updating the cache manager
+// 同步 刷新cache
 func (r *ServiceDiscovery) AutoSync() {
 	c := &CacheManager{
 		registryClient: r.registryClient,

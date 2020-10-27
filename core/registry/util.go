@@ -23,12 +23,13 @@ const (
 )
 
 //GetProtocolMap returns the protocol map
+// 解析 instance 的Endpoint
 func GetProtocolMap(eps []string) (map[string]*Endpoint, string) {
 	m := make(map[string]*Endpoint)
 	var p string
 	for _, addr := range eps {
-		proto := ""
-		ep := ""
+		proto := "" // proto
+		ep := ""  // address
 		idx := strings.Index(addr, protocolSymbol)
 		if idx == -1 {
 			ep = addr
@@ -137,6 +138,7 @@ const (
 	maxInterval     = 3 * time.Minute
 )
 
+// 失败重试
 func startBackOff(operation func() error) {
 	backOff := &backoff.ExponentialBackOff{
 		InitialInterval:     initialInterval,
@@ -154,12 +156,13 @@ func startBackOff(operation func() error) {
 	}
 }
 
-//URIs2Hosts return hosts and scheme
+//URIs2Hosts return hosts and scheme 校验并解析url
 func URIs2Hosts(uris []string) ([]string, string, error) {
 	hosts := make([]string, 0)
 	var scheme string
 	var URIRegex = "(\\.*://.*)"
 	for _, addr := range uris {
+		// 是否符合url规则
 		ok, err := regexp.MatchString(URIRegex, addr)
 		if err != nil {
 			return nil, "", err
@@ -173,6 +176,7 @@ func URIs2Hosts(uris []string) ([]string, string, error) {
 			if len(u.Host) == 0 {
 				continue
 			}
+			// scheme不一致
 			if len(scheme) != 0 && u.Scheme != scheme {
 				return nil, "", fmt.Errorf("inconsistent scheme found in registry address")
 			}
@@ -186,6 +190,8 @@ func URIs2Hosts(uris []string) ([]string, string, error) {
 	}
 	return hosts, scheme, nil
 }
+
+// 获取tls配置
 func getTLSConfig(scheme, t string) (*tls.Config, error) {
 	var tlsConfig *tls.Config
 	secure := scheme == common.HTTPS

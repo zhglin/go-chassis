@@ -22,11 +22,11 @@ func SaveToLBCache(raw *model.LoadBalancing) {
 	openlog.Debug("Loading lb config from archaius into cache")
 	oldKeys := LBConfigCache.Items()
 	newKeys := make(map[string]bool)
-	// if there is no config, none key will be updated
+	// if there is no config, none key will be updated  更新最新的cache
 	if raw != nil {
 		newKeys = reloadLBCache(raw)
 	}
-	// remove outdated keys
+	// remove outdated keys  删除已经不存在的key
 	for old := range oldKeys {
 		if _, ok := newKeys[old]; !ok {
 			LBConfigCache.Delete(old)
@@ -34,6 +34,8 @@ func SaveToLBCache(raw *model.LoadBalancing) {
 	}
 
 }
+
+// 所有service默认的LB配置
 func saveDefaultLB(raw *model.LoadBalancing) string { // return updated key
 	c := control.LoadBalancingConfig{
 		Strategy:                raw.Strategy["name"],
@@ -142,13 +144,15 @@ func GetCBCacheKey(serviceName, serviceType string) string {
 	return key
 }
 
+// 刷新Balance的cache
 func reloadLBCache(src *model.LoadBalancing) map[string]bool { //return updated keys
 	keys := make(map[string]bool)
-	k := saveDefaultLB(src)
+	k := saveDefaultLB(src)	// 全局统一的配置
 	keys[k] = true
 	if src.AnyService == nil {
 		return keys
 	}
+	// 不同于全局的
 	for name, conf := range src.AnyService {
 		k = saveEachLB(name, conf)
 		keys[k] = true

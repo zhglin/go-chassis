@@ -55,6 +55,7 @@ type ContractDiscovery interface {
 	Close() error
 }
 
+// 开启发现
 func enableServiceDiscovery(opts Options) error {
 	if config.GetServiceDiscoveryDisable() {
 		openlog.Warn("discovery is disabled")
@@ -75,6 +76,7 @@ func enableServiceDiscovery(opts Options) error {
 		return err
 	}
 
+	// 同步cache
 	DefaultServiceDiscoveryService.AutoSync()
 
 	openlog.Info(fmt.Sprintf("enable %s service discovery.", t))

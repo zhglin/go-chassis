@@ -67,6 +67,7 @@ func WithChainName(name string) ChainOption {
 }
 
 // parseHandlers for parsing the handlers
+// 过滤不合法的空字符串
 func parseHandlers(handlerStr string) []string {
 	formatNames := strings.Replace(strings.TrimSpace(handlerStr), " ", "", -1)
 	handlerNames := strings.Split(formatNames, ",")
@@ -95,6 +96,7 @@ func CreateChains(chainType string, handlerNameMap map[string]string) error {
 }
 
 //CreateChain create consumer or provider's chain,the handlers is different
+// 创建chain
 func CreateChain(serviceType string, chainName string, handlerNames ...string) (*Chain, error) {
 	c := &Chain{
 		ServiceType: serviceType,

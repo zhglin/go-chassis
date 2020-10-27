@@ -37,19 +37,19 @@ const (
 	PropertiesPath      = "/properties"
 	HeaderContentType   = "Content-Type"
 	HeaderUserAgent     = "User-Agent"
-	DefaultAddr         = "127.0.0.1:30100"
+	DefaultAddr         = "127.0.0.1:30100"		// 默认的service center地址
 	AppsPath            = "/apps"
 	DefaultRetryTimeout = 500 * time.Millisecond
 	HeaderRevision      = "X-Resource-Revision"
-	EnvProjectID        = "CSE_PROJECT_ID"
+	EnvProjectID        = "CSE_PROJECT_ID"    // os环境变量
 	// EnvCheckSCIInterval sc instance health check interval in second
-	EnvCheckSCIInterval = "CHASSIS_SC_HEALTH_CHECK_INTERVAL"
+	EnvCheckSCIInterval = "CHASSIS_SC_HEALTH_CHECK_INTERVAL" // service center链接地址检查间隔时间
 )
 
 // Define variables for the client
 var (
-	MSAPIPath     = ""
-	GovernAPIPATH = ""
+	MSAPIPath     = ""  // "/v4/" + projectID + "/registry"
+	GovernAPIPATH = ""  // "/v4/" + projectID + "/govern"
 	TenantHeader  = "X-Domain-Name"
 )
 var (
@@ -91,6 +91,7 @@ func (c *RegistryClient) ResetRevision() {
 }
 
 // Initialize initializes the Registry Client
+// 初始化registryClient
 func (c *RegistryClient) Initialize(opt Options) (err error) {
 	c.revision = "0"
 	c.Config = &RegistryConfig{
@@ -135,6 +136,7 @@ func (c *RegistryClient) Initialize(opt Options) (err error) {
 }
 
 // updateAPIPath Updates the Base PATH anf HEADERS Based on the version of SC used.
+// register api不同版本好对应的path
 func (c *RegistryClient) updateAPIPath() {
 	//Check for the env Name in Container to get Domain Name
 	//Default value is  "default"
@@ -157,17 +159,22 @@ func (c *RegistryClient) updateAPIPath() {
 // SyncEndpoints gets the endpoints of service-center in the cluster
 //you only need to call this function,
 //if your service center is not behind a load balancing service like ELB,nginx etc
+// 重置service center 链接地址
 func (c *RegistryClient) SyncEndpoints() error {
+	// 开启定时address检查
 	c.pool.Monitor()
+	// 获取健康的serviceCenter address
 	instances, err := c.Health()
 	if err != nil {
 		return fmt.Errorf("sync SC ep failed. err:%s", err.Error())
 	}
 	eps := make([]string, 0)
+	// 获取rest adress
 	for _, instance := range instances {
 		m := getProtocolMap(instance.Endpoints)
 		eps = append(eps, m["rest"])
 	}
+	// 重置address
 	if len(eps) != 0 {
 		c.pool.SetAddress(eps)
 		openlog.Info("Sync service center endpoints " + strings.Join(eps, ","))
@@ -176,6 +183,7 @@ func (c *RegistryClient) SyncEndpoints() error {
 	return fmt.Errorf("sync endpoints failed")
 }
 
+// 构建url
 func (c *RegistryClient) formatURL(api string, querys []URLParameter, options *CallOptions) string {
 	builder := URLBuilder{
 		Protocol:      c.protocol,
@@ -194,7 +202,7 @@ func (c *RegistryClient) GetDefaultHeaders() http.Header {
 	headers := http.Header{
 		HeaderContentType: []string{"application/json"},
 		HeaderUserAgent:   []string{"cse-serviceregistry-client/1.0.0"},
-		TenantHeader:      []string{"default"},
+		TenantHeader:      []string{"default"}, // domain竟然是default
 	}
 
 	return headers
@@ -212,6 +220,7 @@ func (c *RegistryClient) HTTPDo(method string, rawURL string, headers http.Heade
 }
 
 // RegisterService registers the micro-services to Service-Center
+// 注册service
 func (c *RegistryClient) RegisterService(microService *registry.MicroService) (string, error) {
 	if microService == nil {
 		return "", errors.New("invalid request MicroService parameter")
@@ -354,6 +363,7 @@ func (c *RegistryClient) GetSchema(microServiceID, schemaName string, opts ...Ca
 }
 
 // GetMicroServiceID gets the microserviceid by appID, serviceName and version
+// 获取serviceId 判断service是否存在
 func (c *RegistryClient) GetMicroServiceID(appID, microServiceName, version, env string, opts ...CallOption) (string, error) {
 	copts := &CallOptions{}
 	for _, opt := range opts {
@@ -483,7 +493,7 @@ func (c *RegistryClient) GetMicroService(microServiceID string, opts ...CallOpti
 //BatchFindInstances fetch instances based on service name, env, app and version
 //finally it return instances grouped by service name
 func (c *RegistryClient) BatchFindInstances(consumerID string, keys []*registry.FindService, opts ...CallOption) (*registry.BatchFindInstancesResponse, error) {
-	copts := &CallOptions{Revision: c.revision}
+	copts := &CallOptions{Revision: c.revision} // 带了revision
 	for _, opt := range opts {
 		opt(copts)
 	}
@@ -674,6 +684,7 @@ func (c *RegistryClient) GetAllResources(resource string, opts ...CallOption) ([
 }
 
 // Health returns the list of all the endpoints of SC with their status
+// 获取健康的service center节点
 func (c *RegistryClient) Health() ([]*registry.MicroServiceInstance, error) {
 	url := ""
 	if c.apiVersion == "v4" {

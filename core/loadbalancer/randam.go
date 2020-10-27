@@ -9,6 +9,7 @@ import (
 )
 
 // RandomStrategy is strategy
+// 随机选择
 type RandomStrategy struct {
 	instances []*registry.MicroServiceInstance
 	mtx       sync.Mutex
@@ -30,7 +31,7 @@ func (r *RandomStrategy) Pick() (*registry.MicroServiceInstance, error) {
 	}
 
 	r.mtx.Lock()
-	k := rand.Int() % len(r.instances)
+	k := rand.Int() % len(r.instances) // 随机
 	r.mtx.Unlock()
 	return r.instances[k], nil
 

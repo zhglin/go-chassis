@@ -6,6 +6,7 @@ import (
 	"github.com/go-chassis/go-chassis/v2/core/registry"
 )
 
+// zone的过滤
 func init() {
 	loadbalancer.InstallFilter(loadbalancer.ZoneAware, FilterAvailableZoneAffinity)
 }
@@ -13,17 +14,23 @@ func init() {
 //FilterAvailableZoneAffinity is a region and zone based Select Filter which will Do the selection of instance in the same region and zone, if not Do the selection of instance in any zone in same region , if not Do the selection of instance in any zone of any region
 func FilterAvailableZoneAffinity(old []*registry.MicroServiceInstance, c []*loadbalancer.Criteria) []*registry.MicroServiceInstance {
 	var instances []*registry.MicroServiceInstance
+
+	// 当前service没设置dataCenter
 	if config.GetDataCenter() == nil {
 		return old
 	}
+
+	// 当前service未设置全
 	if config.GetDataCenter().Name == "" || config.GetDataCenter().AvailableZone == "" {
 		return old // Either no information or partial data center information specified, return all instances
 	}
 
 	availableZone := config.GetDataCenter().AvailableZone
 	regionName := config.GetDataCenter().Name
+	// 符合regionName以及availableZone的instance
 	instances = getInstancesZoneWise(old, regionName, availableZone)
 	if len(instances) == 0 {
+		// 缩小过滤范围
 		instances = getAvailableInstancesInSameRegion(old, regionName)
 		if len(instances) == 0 {
 			return old //out of region (multi region) case
@@ -36,6 +43,7 @@ func FilterAvailableZoneAffinity(old []*registry.MicroServiceInstance, c []*load
 }
 
 // getInstancesZoneWise check for the same zone and region
+// 过滤region， availableZone的instance
 func getInstancesZoneWise(providerInstances []*registry.MicroServiceInstance, region, availableZone string) []*registry.MicroServiceInstance {
 	instances := make([]*registry.MicroServiceInstance, 0)
 	for _, ins := range providerInstances {
@@ -43,6 +51,7 @@ func getInstancesZoneWise(providerInstances []*registry.MicroServiceInstance, re
 			continue
 		}
 
+		// 都符合才返回
 		if ins.DataCenterInfo.Region == region && ins.DataCenterInfo.AvailableZone == availableZone {
 			instances = append(instances, ins)
 		}
@@ -52,6 +61,7 @@ func getInstancesZoneWise(providerInstances []*registry.MicroServiceInstance, re
 }
 
 // getAvailableInstancesInSameRegion check for available instances in same region
+// 只校验region
 func getAvailableInstancesInSameRegion(providerInstances []*registry.MicroServiceInstance, region string) []*registry.MicroServiceInstance {
 	instances := make([]*registry.MicroServiceInstance, 0)
 	for _, ins := range providerInstances {

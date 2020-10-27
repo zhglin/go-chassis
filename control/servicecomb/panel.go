@@ -35,9 +35,10 @@ func (p *Panel) GetCircuitBreaker(inv invocation.Invocation, serviceType string)
 }
 
 //GetLoadBalancing get load balancing config
+// 获取指定invocation的balance配置
 func (p *Panel) GetLoadBalancing(inv invocation.Invocation) control.LoadBalancingConfig {
-	c, ok := LBConfigCache.Get(inv.MicroServiceName)
-	if !ok {
+	c, ok := LBConfigCache.Get(inv.MicroServiceName) // 根据指定的serviceName获取
+	if !ok {	// 不存在就获取全局默认的
 		c, ok := LBConfigCache.Get("")
 		if !ok {
 			return DefaultLB

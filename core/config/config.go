@@ -231,6 +231,7 @@ func Init() error {
 
 	runtime.NodeIP = archaius.GetString(common.EnvNodeIP, "")
 
+	// 从配置中心读取
 	err = readFromArchaius()
 	if err != nil {
 		return err

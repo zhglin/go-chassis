@@ -90,6 +90,7 @@ func wrapTagsForServiceCenter(t utiltags.Tags) utiltags.Tags {
 }
 
 //GetCriteria generate batch find criteria from provider cache
+// 获取依赖的service，转换参数
 func GetCriteria() []*scregistry.FindService {
 	services := make([]*scregistry.FindService, 0)
 	for _, service := range registry.GetProvidersFromCache() {
@@ -105,6 +106,7 @@ func GetCriteria() []*scregistry.FindService {
 }
 
 //GetCriteriaByService generate batch find criteria from provider cache with same service name and different app
+// 转换成sc的请求参数
 func GetCriteriaByService(sn string) []*scregistry.FindService {
 	services := make([]*scregistry.FindService, 0)
 	for _, service := range registry.GetProvidersFromCache() {

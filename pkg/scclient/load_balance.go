@@ -15,6 +15,7 @@ type Next func() (string, error)
 var i = rand.Int31()
 
 // RoundRobin Gives the next object in sequence
+// 轮询
 func RoundRobin(eps []string) Next {
 	return func() (string, error) {
 		if len(eps) == 0 {

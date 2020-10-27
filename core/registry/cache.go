@@ -15,6 +15,7 @@ const (
 )
 
 //MicroserviceInstanceIndex key: ServiceName, value: []instance
+// service对应的instance serviceName => instance
 var MicroserviceInstanceIndex CacheIndex
 
 //ipIndexedCache is for caching map of instance IP and service information
@@ -28,11 +29,13 @@ var SchemaInterfaceIndexedCache *cache.Cache
 var SchemaServiceIndexedCache *cache.Cache
 
 // ProvidersMicroServiceCache  key: micro service  name and appId, value: []*MicroService
+// 依赖service的cache  key=serviceName|appId  MicroService{ServiceName: serverName, AppID: appID}
 var ProvidersMicroServiceCache *cache.Cache
 
 func initCache() *cache.Cache { return cache.New(DefaultExpireTime, 0) }
 
 //EnableRegistryCache init caches
+// 初始化各个cache
 func EnableRegistryCache() {
 	MicroserviceInstanceIndex = NewIndexCache()
 	ipIndexedCache = initCache()
@@ -69,6 +72,7 @@ func GetIPIndex(ip string) *SourceInfo {
 }
 
 // GetProvidersFromCache get local provider simpleCache
+// 获取依赖service
 func GetProvidersFromCache() []*MicroService {
 	microServices := make([]*MicroService, 0)
 	items := ProvidersMicroServiceCache.Items()
@@ -78,13 +82,14 @@ func GetProvidersFromCache() []*MicroService {
 			openlog.Warn("not microService type")
 			continue
 		}
-		microService.Version = common.AllVersion
+		microService.Version = common.AllVersion // 设置版本规则
 		microServices = append(microServices, &microService)
 	}
 	return microServices
 }
 
 // AddProviderToCache refresh provider simpleCache
+// 添加依赖service
 func AddProviderToCache(serverName, appID string) {
 	if appID == "" {
 		appID = runtime.App

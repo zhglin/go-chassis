@@ -128,6 +128,7 @@ func (c *chassis) initialize() error {
 		return err
 	}
 	bootstrap.Bootstrap()
+	// 注册中心
 	if !archaius.GetBool("servicecomb.registry.disabled", false) {
 		err := registry.Enable()
 		if err != nil {

@@ -49,9 +49,11 @@ func (e LBError) Error() string {
 }
 
 // BuildStrategy query instance list and give it to Strategy then return Strategy
+// 创建并填充balance
 func BuildStrategy(i *invocation.Invocation,
 	s Strategy) (Strategy, error) {
 
+	// strategy不存在设置默认balance
 	if s == nil {
 		s = &RoundRobinStrategy{}
 	}
@@ -61,9 +63,9 @@ func BuildStrategy(i *invocation.Invocation,
 		if filter == "" {
 			isFilterExist = false
 		}
-
 	}
 
+	// 获取instances
 	instances, err := registry.DefaultServiceDiscoveryService.FindMicroServiceInstances(i.SourceServiceID, i.MicroServiceName, i.RouteTags)
 	if err != nil {
 		lbErr := LBError{err.Error()}
@@ -71,6 +73,7 @@ func BuildStrategy(i *invocation.Invocation,
 		return nil, lbErr
 	}
 
+	// 过滤instance
 	if isFilterExist {
 		filterFuncs := make([]Filter, 0)
 		//append filters in config
@@ -92,14 +95,18 @@ func BuildStrategy(i *invocation.Invocation,
 		return nil, lbErr
 	}
 
+	// 填充balance数据
 	serviceKey := strings.Join([]string{i.MicroServiceName, i.RouteTags.String()}, "|")
 	s.ReceiveData(i, instances, serviceKey)
 	return s, nil
 }
 
 // Strategy is load balancer algorithm , call Pick to return one instance
+// loadBalancer接口
 type Strategy interface {
+	// 填充数据
 	ReceiveData(inv *invocation.Invocation, instances []*registry.MicroServiceInstance, serviceKey string)
+	// 返回节点
 	Pick() (*registry.MicroServiceInstance, error)
 }
 
@@ -111,14 +118,16 @@ type Criteria struct {
 }
 
 // Filter receive instances and criteria, it will filter instances based on criteria you defined,criteria is optional, you can give nil for it
+// 统一的过滤函数
 type Filter func(instances []*registry.MicroServiceInstance, criteria []*Criteria) []*registry.MicroServiceInstance
 
 // Enable function is for to enable load balance strategy
+// 添加支持的balancer
 func Enable(strategyName string) error {
 	openlog.Info("Enable LoadBalancing")
-	InstallStrategy(StrategyRandom, newRandomStrategy)
-	InstallStrategy(StrategyRoundRobin, newRoundRobinStrategy)
-	InstallStrategy(StrategySessionStickiness, newSessionStickinessStrategy)
+	InstallStrategy(StrategyRandom, newRandomStrategy) // 随机
+	InstallStrategy(StrategyRoundRobin, newRoundRobinStrategy) // 轮询
+	InstallStrategy(StrategySessionStickiness, newSessionStickinessStrategy) // 会话
 
 	if strategyName == "" {
 		openlog.Info("Empty strategy configuration, use RoundRobin as default")
@@ -130,9 +139,11 @@ func Enable(strategyName string) error {
 }
 
 // Filters is a map of string and array of *registry.MicroServiceInstance
+// instances的过滤函数
 var Filters = make(map[string]Filter)
 
 // InstallFilter install filter
+// 注册Filter函数
 func InstallFilter(name string, f Filter) {
 	Filters[name] = f
 }

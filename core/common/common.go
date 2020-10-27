@@ -100,7 +100,7 @@ const CallerKey = "caller"
 
 //service comb headers
 const (
-	HeaderSourceName = "x-cse-src-microservice"
+	HeaderSourceName = "x-cse-src-microservice"  // 请求的源service
 	// HeaderXCseContent is constant for header , get some json msg about HeaderSourceName like {"k":"v"}
 	HeaderXCseContent = "x-cse-context"
 
@@ -216,6 +216,7 @@ func GetXCSEContext(k string, r *http.Request) string {
 }
 
 // SetXCSEContext  set value into x-cse-context
+// 设置http header头
 func SetXCSEContext(vm map[string]string, r *http.Request) {
 	if len(vm) <= 0 || vm == nil || r == nil {
 		openlog.Debug("set x-cse-header into req failed ,because one of key,value and request is empty(nil) or all empty(nil)")

@@ -10,12 +10,14 @@ const (
 )
 
 // Endpoint struct having full info about micro-service instance endpoint
+// instance的Endpoint解析过来的
 type Endpoint struct {
 	SSLEnabled bool   `json:"sslEnabled"`
 	Address    string `json:"address"`
 }
 
 // NewEndPoint return a Endpoint object what parse from url
+// 新建
 func NewEndPoint(schema string) (*Endpoint, error) {
 	return parseAddress(schema)
 }
@@ -42,9 +44,11 @@ func (e *Endpoint) String() string {
 	return e.GenEndpoint()
 }
 
+// 解析address ssl
 func parseAddress(address string) (*Endpoint, error) {
 	ep := Endpoint{}
 	idx := strings.Index(address, "?")
+	// 设置了ssl
 	if idx != -1 {
 		if strings.Contains(address, SSLEnabledQuery) {
 			ep.SSLEnabled = true

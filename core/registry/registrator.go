@@ -23,7 +23,7 @@ const (
 )
 
 // IsEnabled check enable
-var IsEnabled bool
+var IsEnabled bool  // 是否已开启
 var mu sync.Mutex
 
 // DefaultRegistrator is the client of registry, you can call the method of it to interact with microservice registry
@@ -55,6 +55,7 @@ type Registrator interface {
 	AddSchemas(microServiceID, schemaName, schemaInfo string) error
 }
 
+// 开启服务注册
 func enableRegistrator(opts Options) error {
 	if config.GetRegistratorDisable() {
 		return nil
@@ -64,15 +65,18 @@ func enableRegistrator(opts Options) error {
 	if rt == "" {
 		rt = DefaultRegistratorPlugin
 	}
+
+	// 创建register
 	var err error
 	DefaultRegistrator, err = NewRegistrator(rt, opts)
 	if err != nil {
 		return err
 	}
 
+	// 注册服务
 	if err := RegisterService(); err != nil {
 		openlog.Error(fmt.Sprintf("start backoff for register microservice: %s", err))
-		startBackOff(RegisterService)
+		startBackOff(RegisterService) // 同步 失败重试
 	}
 
 	openlog.Info(fmt.Sprintf("enable [%s] registrator.", rt))
@@ -93,7 +97,10 @@ func NewRegistrator(name string, opts Options) (Registrator, error) {
 	}
 	return f(opts), nil
 }
+
+// 获取注册中心配置
 func getSpecifiedOptions() (oR, oSD, oCD Options, err error) {
+	// 注册
 	hostsR, schemeR, err := URIs2Hosts(strings.Split(config.GetRegistratorAddress(), ","))
 	if err != nil {
 		return
@@ -107,6 +114,8 @@ func getSpecifiedOptions() (oR, oSD, oCD Options, err error) {
 	if oR.TLSConfig != nil {
 		oR.EnableSSL = true
 	}
+
+	// 发现
 	hostsSD, schemeSD, err := URIs2Hosts(strings.Split(config.GetServiceDiscoveryAddress(), ","))
 	if err != nil {
 		return
@@ -121,6 +130,7 @@ func getSpecifiedOptions() (oR, oSD, oCD Options, err error) {
 	if oSD.TLSConfig != nil {
 		oSD.EnableSSL = true
 	}
+
 	hostsCD, schemeCD, err := URIs2Hosts(strings.Split(config.GetContractDiscoveryAddress(), ","))
 	if err != nil {
 		return
@@ -138,18 +148,21 @@ func getSpecifiedOptions() (oR, oSD, oCD Options, err error) {
 }
 
 // Enable create DefaultRegistrator
+// 开启注册中心,初始化链接
 func Enable() (err error) {
 	mu.Lock()
 	defer mu.Unlock()
-	if IsEnabled {
+	if IsEnabled { // 已开启
 		return
 	}
 
+	// 获取各个链接配置
 	var oR, oSD, oCD Options
 	if oR, oSD, oCD, err = getSpecifiedOptions(); err != nil {
 		return err
 	}
 
+	// 开启cache
 	EnableRegistryCache()
 	if err := enableRegistrator(oR); err != nil {
 		return err

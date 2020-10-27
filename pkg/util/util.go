@@ -31,6 +31,7 @@ func ParsePortName(n string) (string, string, error) {
 }
 
 //ParseServiceAndPort returns service name and port name
+// 解析服务名称 端口号
 func ParseServiceAndPort(n string) (string, string, error) {
 	if n == "" {
 		return "", "", ErrInvalidURL

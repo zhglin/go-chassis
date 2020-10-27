@@ -10,6 +10,7 @@ const (
 var HostName string
 
 //ServiceID is the service id in registry service
+// 注册成功后设置
 var ServiceID string
 
 //ServiceName represent self name
@@ -19,6 +20,7 @@ var ServiceName string
 var Environment string
 
 //Schemas save schema file names(schema IDs)
+// service 的 schemas 注册service时设置
 var Schemas []string
 
 //App is app info

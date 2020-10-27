@@ -9,6 +9,7 @@ import (
 )
 
 // RoundRobinStrategy is strategy
+// 轮询
 type RoundRobinStrategy struct {
 	instances []*registry.MicroServiceInstance
 	key       string
@@ -34,6 +35,7 @@ func (r *RoundRobinStrategy) Pick() (*registry.MicroServiceInstance, error) {
 	return r.instances[i%len(r.instances)], nil
 }
 
+// 每个invocation都会新创建balance rrIdxMap全局保留所有服务对应的随机值
 var rrIdxMap = make(map[string]int)
 var mu sync.RWMutex
 
@@ -45,7 +47,7 @@ func pick(key string) int {
 		mu.Lock()
 		i, ok = rrIdxMap[key]
 		if !ok {
-			i = rand.Int()
+			i = rand.Int()  // 初始化随机值
 			rrIdxMap[key] = i
 		}
 		rrIdxMap[key]++
@@ -55,7 +57,7 @@ func pick(key string) int {
 
 	mu.RUnlock()
 	mu.Lock()
-	rrIdxMap[key]++
+	rrIdxMap[key]++ // 每次加1
 	mu.Unlock()
 	return i
 }

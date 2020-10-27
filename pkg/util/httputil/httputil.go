@@ -83,6 +83,7 @@ func ReadBody(resp *http.Response) []byte {
 }
 
 // GetRespCookie returns response Cookie.
+// 从response中获取指定的cookies
 func GetRespCookie(resp *http.Response, key string) []byte {
 	for _, c := range resp.Cookies() {
 		if c.Name == key {

@@ -24,6 +24,7 @@ type LBHandler struct{}
 func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.LoadBalancingConfig) (*registry.Endpoint, error) {
 	var strategyFun func() loadbalancer.Strategy
 	var err error
+	// 设置strategyFun
 	if i.Strategy == "" {
 		i.Strategy = lbConfig.Strategy
 		strategyFun, err = loadbalancer.GetStrategyPlugin(i.Strategy)
@@ -38,15 +39,19 @@ func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.Load
 				Message: "Get strategy [" + i.Strategy + "] failed."}.Error(), err.Error()))
 		}
 	}
+
+	// 设置Filters
 	if len(i.Filters) == 0 {
 		i.Filters = lbConfig.Filters
 	}
 
+	// 获取balance实例
 	s, err := loadbalancer.BuildStrategy(i, strategyFun())
 	if err != nil {
 		return nil, err
 	}
 
+	// 选择一个instance
 	ins, err := s.Pick()
 	if err != nil {
 		lbErr := loadbalancer.LBError{Message: err.Error()}
@@ -74,6 +79,7 @@ func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.Load
 
 // Handle to handle the load balancing
 func (lb *LBHandler) Handle(chain *Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 获取balance配置
 	lbConfig := control.DefaultPanel.GetLoadBalancing(*i)
 	if !lbConfig.RetryEnabled {
 		lb.handleWithNoRetry(chain, i, lbConfig, cb)

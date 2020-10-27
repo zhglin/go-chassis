@@ -35,19 +35,19 @@ type Invocation struct {
 	Endpoint           string //service's ip and port, it is decided in load balancing
 	Protocol           string
 	Port               string //Port is the name of a real service port
-	SourceServiceID    string
+	SourceServiceID    string // 当前service的serviceId
 	SourceMicroService string
-	MicroServiceName   string //Target micro service name
+	MicroServiceName   string //Target micro service name  当前依赖的服务名称
 	SchemaID           string //correspond struct name
-	OperationID        string //correspond struct func name
-	Args               interface{}
-	URLPathFormat      string
-	Reply              interface{}
-	Ctx                context.Context        //ctx can save protocol headers
-	Metadata           map[string]interface{} //local scope data
+	OperationID        string //correspond struct func name  url path
+	Args               interface{} // 请求 http request
+	URLPathFormat      string // url path
+	Reply              interface{} // 响应 http response
+	Ctx                context.Context        //ctx can save protocol headers  存储协议headers
+	Metadata           map[string]interface{} //local scope data  需要额外记录的数据，提供给外部使用 例如trace
 	RouteTags          utiltags.Tags          //route tags is decided in router handler
 	Strategy           string                 //load balancing strategy
-	Filters            []string
+	Filters            []string					// 对instance进行过滤
 }
 
 //GetMark return match rule name that request matches
@@ -67,6 +67,7 @@ func (inv *Invocation) Mark(matchRuleName string) {
 
 // New create invocation, context can not be nil
 // if you don't set ContextHeaderKey, then New will init it
+// 创建invocation 一个请求对应一个invocation
 func New(ctx context.Context) *Invocation {
 	inv := &Invocation{
 		SourceServiceID: runtime.ServiceID,
@@ -84,6 +85,7 @@ func New(ctx context.Context) *Invocation {
 }
 
 //SetMetadata local scope params
+// 设置metadata
 func (inv *Invocation) SetMetadata(key string, value interface{}) {
 	if inv.Metadata == nil {
 		inv.Metadata = make(map[string]interface{})

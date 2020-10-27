@@ -27,6 +27,7 @@ func newOptions(options ...Option) Options {
 }
 
 // abstract invoker is a common invoker for RPC
+// 基本的invoker 供其他的invoker嵌入
 type abstractInvoker struct {
 	opts Options
 }

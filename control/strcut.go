@@ -1,10 +1,11 @@
 package control
 
 //LoadBalancingConfig is a standardized model
+// 内部使用的balancing
 type LoadBalancingConfig struct {
 	Strategy     string
-	Filters      []string
-	RetryEnabled bool
+	Filters      []string		// 指定的instance过滤方法
+	RetryEnabled bool			// 是否自动重试
 	RetryOnSame  int
 	RetryOnNext  int
 	BackOffKind  string

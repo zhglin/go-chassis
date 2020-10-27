@@ -26,7 +26,7 @@ type URLBuilder struct {
 	Protocol      string
 	Host          string
 	Path          string
-	URLParameters []URLParameter
+	URLParameters []URLParameter  // 请求参数  get
 	CallOptions   *CallOptions
 }
 

@@ -10,13 +10,15 @@ import (
 
 // IndexCache return instances by criteria
 type IndexCache struct {
+	// 每个service下最大的version
 	latestV    map[string]string //save every service's latest version number
 	muxLatestV sync.RWMutex
 
+	// service下的instance
 	simpleCache *cache.Cache //save service name and correspond instances
 
 	//key must contain service name, cache key includes label key values
-	indexedCache *cache.Cache
+	indexedCache *cache.Cache // 没用到
 
 	CriteriaStore []map[string]string //all criteria need to be saved in here so that we can update indexedCache, during Set process
 }
@@ -35,12 +37,14 @@ func NewIndexCache() *IndexCache {
 func (ic *IndexCache) FullCache() *cache.Cache { return ic.simpleCache }
 
 //Delete remove one service's instances
+// 删除指定的service
 func (ic *IndexCache) Delete(k string) {
 	ic.simpleCache.Delete(k)
 	ic.indexedCache.Delete(k)
 }
 
 //Set overwrite instances cache
+// 设置service的instances cache
 func (ic *IndexCache) Set(k string, instances []*MicroServiceInstance) {
 	latestV, _ := version.NewVersion("0.0.0")
 	for _, instance := range instances {
@@ -74,7 +78,9 @@ func (ic *IndexCache) Set(k string, instances []*MicroServiceInstance) {
 }
 
 //Get return instances cache by criteria
+// 获取指定service的instance
 func (ic *IndexCache) Get(k string, tags map[string]string) ([]*MicroServiceInstance, bool) {
+	// service不存在
 	value, ok := ic.simpleCache.Get(k)
 	if !ok {
 		return nil, false
@@ -89,6 +95,7 @@ func (ic *IndexCache) Get(k string, tags map[string]string) ([]*MicroServiceInst
 	savedResult, ok := ic.indexedCache.Get(indexKey)
 	if !ok {
 		//no result, then find it and save result
+		// 根据tag查找instance
 		instances, _ := value.([]*MicroServiceInstance)
 		queryResult := make([]*MicroServiceInstance, 0, len(instances))
 		for _, instance := range instances {
@@ -96,6 +103,8 @@ func (ic *IndexCache) Get(k string, tags map[string]string) ([]*MicroServiceInst
 				queryResult = append(queryResult, instance)
 			}
 		}
+
+		// 不存在
 		if len(queryResult) == 0 {
 			return nil, false
 		}
@@ -109,8 +118,10 @@ func (ic *IndexCache) Get(k string, tags map[string]string) ([]*MicroServiceInst
 	return savedResult.([]*MicroServiceInstance), ok
 
 }
+
+// 修改版本号 latest 改成 最大的版本号
 func (ic *IndexCache) setTagsBeforeQuery(k string, tags map[string]string) {
-	ic.muxLatestV.RLock()
+	ic.muxLatestV.RLock() // 保护ic.latestV
 	//must set version before query
 	if v, ok := tags[common.BuildinTagVersion]; ok && v == common.LatestVersion && ic.latestV[k] != "" {
 		tags[common.BuildinTagVersion] = ic.latestV[k]

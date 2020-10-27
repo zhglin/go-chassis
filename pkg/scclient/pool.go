@@ -13,19 +13,21 @@ var onceMonitor sync.Once
 var instance *AddressPool
 
 const (
-	available               string = "available"
-	unavailable             string = "unavailable"
+	available               string = "available"   // 可用
+	unavailable             string = "unavailable" // 不可用
 	defaultCheckSCIInterval        = 25 // default sc instance health check interval in second
 )
 
 // AddressPool registry address pool
+// register的可用地址
 type AddressPool struct {
-	addressMap map[string]string
-	status     map[string]string
+	addressMap map[string]string  // 所有获取的address
+	status     map[string]string  // 每个address的可用状态
 	mutex      sync.RWMutex
 }
 
 // GetInstance Get registry pool instance
+// 只是初始化了下
 func GetInstance() *AddressPool {
 	onceInit.Do(func() {
 		instance = &AddressPool{
@@ -37,6 +39,7 @@ func GetInstance() *AddressPool {
 }
 
 // SetAddress set addresses to pool
+// 设置register地址 配置里读取的
 func (p *AddressPool) SetAddress(addresses []string) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
@@ -48,6 +51,7 @@ func (p *AddressPool) SetAddress(addresses []string) {
 }
 
 // GetAvailableAddress Get an available address from pool by roundrobin
+// 获取可用的address
 func (p *AddressPool) GetAvailableAddress() string {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
@@ -58,6 +62,7 @@ func (p *AddressPool) GetAvailableAddress() string {
 		}
 	}
 
+	// 轮询获取地址
 	next := RoundRobin(addrs)
 	addr, err := next()
 	if err != nil {
@@ -66,12 +71,13 @@ func (p *AddressPool) GetAvailableAddress() string {
 	return addr
 }
 
+// 校验service center 地址是否可用
 func (p *AddressPool) checkConnectivity() {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	timeOut := time.Duration(1) * time.Second
 	for _, v := range p.addressMap {
-		conn, err := net.DialTimeout("tcp", v, timeOut)
+		conn, err := net.DialTimeout("tcp", v, timeOut) // 能否链接成功
 		if err != nil {
 			p.status[v] = unavailable
 		} else {
@@ -82,11 +88,12 @@ func (p *AddressPool) checkConnectivity() {
 }
 
 //Monitor monitor each service center network connectivity
+// 定时检查address
 func (p *AddressPool) Monitor() {
 	onceMonitor.Do(func() {
-		p.checkConnectivity()
+		p.checkConnectivity() // 首次检查address
 		var interval time.Duration
-		v, isExist := os.LookupEnv(EnvCheckSCIInterval)
+		v, isExist := os.LookupEnv(EnvCheckSCIInterval) // 配置的间隔时间
 		if !isExist {
 			interval = defaultCheckSCIInterval
 		} else {
@@ -104,7 +111,7 @@ func (p *AddressPool) Monitor() {
 			for {
 				select {
 				case <-ticker.C:
-					p.checkConnectivity()
+					p.checkConnectivity() // 定时检查
 				case <-quit:
 					ticker.Stop()
 					return
