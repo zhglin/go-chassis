@@ -3,10 +3,10 @@
 package rate
 
 import (
+	"github.com/go-chassis/go-chassis/v2/resilience/flowcontrol"
 	"github.com/go-chassis/openlog"
 	"sync"
-
-	"k8s.io/client-go/util/flowcontrol"
+	//"k8s.io/client-go/util/flowcontrol"
 )
 
 // constant qps default rate
@@ -29,6 +29,7 @@ var (
 )
 
 // GetRateLimiters get qps rate limiters
+// 获取并创建qpsLimiter
 func GetRateLimiters() *Limiters {
 	once.Do(func() {
 		qpsLimiter = &Limiters{m: make(map[string]flowcontrol.RateLimiter)}
@@ -39,6 +40,7 @@ func GetRateLimiters() *Limiters {
 //TryAccept try to accept a request. if limiter can not accept a request, it returns false
 //name is the limiter name
 //qps is not necessary if the limiter already exists
+// 尝试获取token
 func (qpsL *Limiters) TryAccept(name string, qps, burst int) bool {
 	qpsL.RLock()
 	limiter, ok := qpsL.m[name]
@@ -52,6 +54,7 @@ func (qpsL *Limiters) TryAccept(name string, qps, burst int) bool {
 }
 
 // addLimiter create a new limiter and add it to limiter map
+// 创建并添加limiter
 func (qpsL *Limiters) addLimiter(name string, qps, burst int) bool {
 	var bucketSize int
 	// add a limiter object for the newly found operation in the Default Hash map
@@ -66,10 +69,11 @@ func (qpsL *Limiters) addLimiter(name string, qps, burst int) bool {
 	r := flowcontrol.NewTokenBucketRateLimiter(float32(bucketSize), burst)
 	qpsL.m[name] = r
 	qpsL.Unlock()
-	return r.TryAccept()
+	return r.TryAccept() // 这个try只是TryAccept调用时候有用
 }
 
 // UpdateRateLimit will update the old limiters
+// 添加rateLimit
 func (qpsL *Limiters) UpdateRateLimit(name string, qps, burst int) {
 	openlog.Info("add limiter", openlog.WithTags(openlog.Tags{
 		"module": "rateLimiter",

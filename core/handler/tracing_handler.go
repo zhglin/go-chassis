@@ -72,7 +72,9 @@ func (t *TracingConsumerHandler) Handle(chain *Chain, i *invocation.Invocation, 
 	// the span context is in invocation.Ctx
 	// start a new span from context
 	var span opentracing.Span
+	// 从header中提取
 	wireContext, _ := opentracing.GlobalTracer().Extract(opentracing.TextMap, opentracing.TextMapCarrier(i.Headers()))
+	// 提取不出来 创建新的span
 	if wireContext == nil {
 		span = opentracing.StartSpan(i.OperationID)
 	} else {
@@ -82,12 +84,14 @@ func (t *TracingConsumerHandler) Handle(chain *Chain, i *invocation.Invocation, 
 	// set span kind to be client
 	ext.SpanKindRPCClient.Set(span)
 	// store span in context
+	// 设置span信息到ctx
 	i.Ctx = opentracing.ContextWithSpan(i.Ctx, span)
 
 	// inject span context into carrier
 
 	// header stored in context
 
+	// 注入到请求头中
 	if err := opentracing.GlobalTracer().Inject(
 		span.Context(),
 		opentracing.TextMap,
@@ -99,6 +103,7 @@ func (t *TracingConsumerHandler) Handle(chain *Chain, i *invocation.Invocation, 
 	// So the best way is that spans finish in the callback func, not after it.
 	// But client may send req in the callback func too, that we have to remove
 	// span finishing from callback func's inside to outside.
+	// 最后写入span
 	chain.Next(i, func(r *invocation.Response) {
 		switch i.Protocol {
 		case common.ProtocolRest:

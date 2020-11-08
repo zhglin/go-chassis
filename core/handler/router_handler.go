@@ -10,10 +10,12 @@ import (
 )
 
 // RouterHandler router handler
+// 路由
 type RouterHandler struct{}
 
 // Handle is to handle the router related things
 func (ph *RouterHandler) Handle(chain *Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 已设置 跳过 routeTags可以手动指定
 	if i.RouteTags.KV != nil {
 		chain.Next(i, cb)
 		return

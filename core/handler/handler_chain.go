@@ -10,13 +10,14 @@ import (
 )
 
 // ChainMap just concurrent read
+// 创建好的chain 全局保存 key = chainType+chainName
 var ChainMap = make(map[string]*Chain)
 
 // Chain struct for service and handlers
 type Chain struct {
-	ServiceType string
-	Name        string
-	Handlers    []Handler
+	ServiceType string    // 类型 consumer || provider
+	Name        string    // 标识
+	Handlers    []Handler // handlers
 }
 
 func (c *Chain) Clone() Chain {
@@ -33,11 +34,13 @@ func (c *Chain) Clone() Chain {
 }
 
 // AddHandler chain can add a handler
+// 添加handler
 func (c *Chain) AddHandler(h Handler) {
 	c.Handlers = append(c.Handlers, h)
 }
 
 // Next is for to handle next handler in the chain
+// 执行chain中的handler
 func (c *Chain) Next(i *invocation.Invocation, f invocation.ResponseCallBack) {
 	index := i.HandlerIndex
 	if index >= len(c.Handlers) {
@@ -82,13 +85,15 @@ func parseHandlers(handlerStr string) []string {
 }
 
 //CreateChains create the chains based on type and handler map
+// 创建指定的chain，handlerNameMap的value是逗号分隔的
 func CreateChains(chainType string, handlerNameMap map[string]string) error {
 	for chainName := range handlerNameMap {
-		handlerNames := parseHandlers(handlerNameMap[chainName])
+		handlerNames := parseHandlers(handlerNameMap[chainName]) // 过滤并转换成数组
 		c, err := CreateChain(chainType, chainName, handlerNames...)
 		if err != nil {
 			return fmt.Errorf("err create chain %s.%s:%s %s", chainType, chainName, handlerNames, err.Error())
 		}
+		// 添加到全局变量
 		ChainMap[chainType+chainName] = c
 
 	}
@@ -104,6 +109,7 @@ func CreateChain(serviceType string, chainName string, handlerNames ...string) (
 	}
 	openlog.Debug(fmt.Sprintf("add [%d] handlers for chain [%s]", len(handlerNames), chainName))
 
+	// 依次添加handler
 	for _, name := range handlerNames {
 		err := addHandler(c, name)
 		if err != nil {
@@ -119,6 +125,7 @@ func CreateChain(serviceType string, chainName string, handlerNames ...string) (
 }
 
 // addHandler add handler
+// 依次创建handler并添加到chain中
 func addHandler(c *Chain, name string) error {
 	handler, err := CreateHandler(name)
 	if err != nil {
@@ -129,6 +136,7 @@ func addHandler(c *Chain, name string) error {
 }
 
 // GetChain is to get chain
+// 获取已创建好的chain
 func GetChain(serviceType string, name string) (*Chain, error) {
 	if name == "" {
 		name = common.DefaultChainName

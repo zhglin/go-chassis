@@ -47,7 +47,7 @@ func pick(key string) int {
 		mu.Lock()
 		i, ok = rrIdxMap[key]
 		if !ok {
-			i = rand.Int()  // 初始化随机值
+			i = rand.Int() // 初始化随机值
 			rrIdxMap[key] = i
 		}
 		rrIdxMap[key]++

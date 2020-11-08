@@ -25,6 +25,8 @@ import (
 	"math"
 )
 
+// 流量打标 粗力度的流控
+// 注册limiter handler
 func init() {
 	err := handler.RegisterHandler(Name, newRateLimiterHandler)
 	if err != nil {
@@ -37,6 +39,7 @@ type Handler struct{}
 
 // Handle limit request rate according to marker
 func (h *Handler) Handle(chain *handler.Chain, inv *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 只有http才会有
 	if inv.GetMark() == "" { //if some user do not use invocation marker feature, then should skip rate limiter
 		chain.Next(inv, cb)
 		return

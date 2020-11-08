@@ -279,8 +279,8 @@ func RegroupInstances(keys []*scregistry.FindService, response *scregistry.Batch
 			}
 			for _, instance := range result.Instances {
 				ni := ToMicroServiceInstance(instance)
-				ni.App = keys[result.Index].Service.AppId		// appId
-				ni.Version = keys[result.Index].Service.Version	// version
+				ni.App = keys[result.Index].Service.AppId       // appId
+				ni.Version = keys[result.Index].Service.Version // version
 				instances, ok := instanceMap[keys[result.Index].Service.ServiceName]
 				if !ok {
 					instances = []*registry.MicroServiceInstance{ni}

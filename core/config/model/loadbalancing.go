@@ -29,7 +29,7 @@ type LoadBalancingSpec struct {
 	RetryEnabled          bool                  `yaml:"retryEnabled"`
 	RetryOnNext           int                   `yaml:"retryOnNext"`
 	RetryOnSame           int                   `yaml:"retryOnSame"`
-	Backoff               BackoffStrategy       `yaml:"backoff"`
+	Backoff               BackoffStrategy       `yaml:"backoff"` // 补偿
 }
 
 // SessionStickinessRule loadbalancing structure

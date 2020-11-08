@@ -37,19 +37,19 @@ const (
 	PropertiesPath      = "/properties"
 	HeaderContentType   = "Content-Type"
 	HeaderUserAgent     = "User-Agent"
-	DefaultAddr         = "127.0.0.1:30100"		// 默认的service center地址
+	DefaultAddr         = "127.0.0.1:30100" // 默认的service center地址
 	AppsPath            = "/apps"
 	DefaultRetryTimeout = 500 * time.Millisecond
 	HeaderRevision      = "X-Resource-Revision"
-	EnvProjectID        = "CSE_PROJECT_ID"    // os环境变量
+	EnvProjectID        = "CSE_PROJECT_ID" // os环境变量
 	// EnvCheckSCIInterval sc instance health check interval in second
 	EnvCheckSCIInterval = "CHASSIS_SC_HEALTH_CHECK_INTERVAL" // service center链接地址检查间隔时间
 )
 
 // Define variables for the client
 var (
-	MSAPIPath     = ""  // "/v4/" + projectID + "/registry"
-	GovernAPIPATH = ""  // "/v4/" + projectID + "/govern"
+	MSAPIPath     = "" // "/v4/" + projectID + "/registry"
+	GovernAPIPATH = "" // "/v4/" + projectID + "/govern"
 	TenantHeader  = "X-Domain-Name"
 )
 var (

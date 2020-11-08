@@ -44,6 +44,7 @@ func (t Tags) IsSubsetOf(labels map[string]string) bool {
 }
 
 // LabelOfTags returns tags as string
+// 转换成string  k:v|k:v
 func LabelOfTags(t map[string]string) (ret string) {
 	ss := make([]string, 0, len(t))
 	for k := range t {

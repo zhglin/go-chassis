@@ -33,12 +33,14 @@ type MarkHandler struct {
 }
 
 //Name return the handler name
+// 只支持http的流量标记
 func (m *MarkHandler) Name() string {
 	return TrafficMarker
 }
 
 //Handle to handle the mart invocation
 func (m *MarkHandler) Handle(chain *Chain, inv *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 全链路的标记
 	markInHeader := inv.Header(common.HeaderMark)
 	if markInHeader != "" {
 		inv.Mark(markInHeader)

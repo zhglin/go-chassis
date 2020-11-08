@@ -69,6 +69,7 @@ func URIs2Hosts(uris []string) ([]string, string, error) {
 		if len(u.Host) == 0 {
 			continue
 		}
+		// 协议不一致
 		if len(scheme) != 0 && u.Scheme != scheme {
 			return nil, "", fmt.Errorf("inconsistent scheme found in registry address")
 		}

@@ -3,7 +3,7 @@ package config
 import "github.com/go-chassis/go-archaius"
 
 //DefaultRouterType set the default router type
-const DefaultRouterType = "cse"
+const DefaultRouterType = "cse" // 默认使用的router组件
 
 // GetRouterType returns the type of router
 func GetRouterType() string {

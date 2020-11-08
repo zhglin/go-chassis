@@ -147,7 +147,7 @@ func GetCBCacheKey(serviceName, serviceType string) string {
 // 刷新Balance的cache
 func reloadLBCache(src *model.LoadBalancing) map[string]bool { //return updated keys
 	keys := make(map[string]bool)
-	k := saveDefaultLB(src)	// 全局统一的配置
+	k := saveDefaultLB(src) // 全局统一的配置
 	keys[k] = true
 	if src.AnyService == nil {
 		return keys

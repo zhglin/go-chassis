@@ -47,8 +47,8 @@ type chassis struct {
 	mu          sync.Mutex
 	Initialized bool
 
-	DefaultConsumerChainNames map[string]string
-	DefaultProviderChainNames map[string]string
+	DefaultConsumerChainNames map[string]string // 默认的consumerChain
+	DefaultProviderChainNames map[string]string // 默认的providerChain
 
 	sigs                   []os.Signal
 	preShutDownFuncs       map[string]func(os.Signal)
@@ -63,8 +63,9 @@ type Schema struct {
 	opts       []server.RegisterOption
 }
 
+// 初始化chain，只读取配置中指定default的配置，不存在就使用默认的
 func (c *chassis) initChains(chainType string) error {
-	var defaultChainName = "default"
+	var defaultChainName = "default" // 只获取default的
 	var handlerNameMap = map[string]string{defaultChainName: ""}
 	switch chainType {
 	case common.Provider:

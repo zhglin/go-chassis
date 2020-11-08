@@ -31,6 +31,7 @@ import (
 type routeRuleEventListener struct{}
 
 // update route rule of a service
+// 配置中间监听routeRule更新
 func (r *routeRuleEventListener) Event(e *event.Event) {
 	if e == nil {
 		openlog.Warn("Event pointer is nil")
@@ -68,6 +69,7 @@ func (r *routeRuleEventListener) Event(e *event.Event) {
 }
 
 //SaveRouteRule save event rule to local cache
+// 更新
 func SaveRouteRule(service string, raw string, isV2 bool) {
 	var routeRules []*config.RouteRule
 	var err error

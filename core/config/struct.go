@@ -19,6 +19,7 @@ func (o OneServiceRule) Value() []*RouteRule {
 }
 
 //NewServiceRule create a rule by raw data
+// 解析rule
 func NewServiceRule(raw string) (*OneServiceRule, error) {
 	b := stringutil.Str2bytes(raw)
 	r := &OneServiceRule{}
@@ -45,7 +46,7 @@ type Router struct {
 
 // RouteRule is having route rule parameters
 type RouteRule struct {
-	Precedence int         `json:"precedence" yaml:"precedence"`
+	Precedence int         `json:"precedence" yaml:"precedence"` // 优先级 根据此字段进行排序
 	Routes     []*RouteTag `json:"route" yaml:"route"`
 	Match      Match       `json:"match" yaml:"match"`
 }
@@ -54,16 +55,16 @@ type RouteRule struct {
 type RouteTag struct {
 	Tags   map[string]string `json:"tags" yaml:"tags"`
 	Weight int               `json:"weight" yaml:"weight"`
-	Label  string
+	Label  string            // tags转换 k:v|k:v
 }
 
 // Match is checking source, source tags, and http headers
 type Match struct {
-	Refer       string                       `json:"refer" yaml:"refer"`
-	Source      string                       `json:"source" yaml:"source"`
-	SourceTags  map[string]string            `json:"sourceTags" yaml:"sourceTags"`
-	HTTPHeaders map[string]map[string]string `json:"httpHeaders" yaml:"httpHeaders"`
-	Headers     map[string]map[string]string `json:"headers" yaml:"headers"`
+	Refer       string                       `json:"refer" yaml:"refer"`             // 是否使用已经定义好的match规则
+	Source      string                       `json:"source" yaml:"source"`           // consumer名
+	SourceTags  map[string]string            `json:"sourceTags" yaml:"sourceTags"`   // 请求的tag invocation.metadata
+	HTTPHeaders map[string]map[string]string `json:"httpHeaders" yaml:"httpHeaders"` // http header
+	Headers     map[string]map[string]string `json:"headers" yaml:"headers"`         // caseInsensitive 可以设置不区分大小写
 }
 
 //DarkLaunchRule dark launch rule
@@ -91,9 +92,9 @@ type MatchPolicies struct {
 //MatchPolicy specify a request mach policy
 type MatchPolicy struct {
 	TrafficMarkPolicy string                       `yaml:"trafficMarkPolicy"`
-	Headers           map[string]map[string]string `yaml:"headers"`
-	APIPaths          map[string]string            `yaml:"apiPath"`
-	Method            []string                     `yaml:"method"`
+	Headers           map[string]map[string]string `yaml:"headers"` // 请求头  [headTitle][比较规则][value] 有一个不匹配就失败
+	APIPaths          map[string]string            `yaml:"apiPath"` // [比较][value]  匹配成功一个就成功
+	Method            []string                     `yaml:"method"`  // [GET,POST] 匹配成功一个就成功
 }
 
 //LimiterConfig is rate limiter policy

@@ -17,7 +17,9 @@ const RouterTLS = "router"
 
 //Init initialize router config in local file
 //then is create the router component
+// 初始化router配置
 func Init() error {
+	// 创建默认的router组件
 	err := BuildRouter(config.GetRouterType())
 	if err != nil {
 		openlog.Error("can not init router [" + config.GetRouterType() + "]: " + err.Error())
@@ -37,15 +39,17 @@ func Init() error {
 }
 
 // ValidateRule validate the route rules of each service
+// 处理并校验 rules
 func ValidateRule(rules map[string][]*config.RouteRule) bool {
 	for name, rule := range rules {
 		for _, route := range rule {
 			allWeight := 0
 			for _, routeTag := range route.Routes {
+				// 设置label
 				routeTag.Label = utiltags.LabelOfTags(routeTag.Tags)
 				allWeight += routeTag.Weight
 			}
-
+			// 校验权重
 			if allWeight > 100 {
 				openlog.Warn("route rule is invalid: total weight is over 100%", openlog.WithTags(
 					openlog.Tags{
@@ -89,6 +93,7 @@ func getSpecifiedOptions() (opts Options, err error) {
 }
 
 // routeTagToTags returns tags from a route tag
+// 转换tag
 func routeTagToTags(t *config.RouteTag) utiltags.Tags {
 	tag := utiltags.Tags{}
 	if t != nil {

@@ -28,6 +28,7 @@ import (
 
 //ProcessMatch saves all policy to match module
 //then match module is able to mark invocation
+// match 保存匹配规则
 func ProcessMatch(key string, value string) error {
 	s := strings.Split(key, ".")
 	if len(s) != 3 {
@@ -39,13 +40,14 @@ func ProcessMatch(key string, value string) error {
 }
 
 type LimiterPolicy struct {
-	MatchPolicyName string `yaml:"match"`
+	MatchPolicyName string `yaml:"match"` // 匹配到的流量标记名
 	Rate            int    `yaml:"rate"`
 	Burst           int    `yaml:"burst"`
 }
 
 //ProcessLimiter saves limiter, after a invocation is marked,
 //go chassis will get correspond limiter with mark name
+// 解析限流配置
 func ProcessLimiter(key string, value string) error {
 	s := strings.Split(key, ".")
 	if len(s) != 3 {
@@ -60,6 +62,7 @@ func ProcessLimiter(key string, value string) error {
 	}
 
 	//key is the match policy name, also marker tag
+	// 添加rateLimiter
 	rate.GetRateLimiters().UpdateRateLimit(policy.MatchPolicyName, policy.Rate, policy.Burst)
 	return nil
 }

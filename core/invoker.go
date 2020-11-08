@@ -53,10 +53,12 @@ func (ri *abstractInvoker) invoke(i *invocation.Invocation) error {
 }
 
 // setCookieToCache   set go-chassisLB cookie to cache when use SessionStickiness strategy
+// 设置sessionId  根据响应进行设置
 func setCookieToCache(inv invocation.Invocation, namespace string) {
 	if inv.Strategy != loadbalancer.StrategySessionStickiness {
 		return
 	}
+	// 获取sessionId
 	cookie := session.GetSessionIDFromInv(inv, common.LBSessionID)
 	if cookie != "" {
 		cookies := strings.Split(cookie, "=")
@@ -67,6 +69,7 @@ func setCookieToCache(inv invocation.Invocation, namespace string) {
 }
 
 // getNamespaceFromMetadata get namespace from opts.Metadata
+// 不同的service对应的session namespace
 func getNamespaceFromMetadata(metadata map[string]interface{}) string {
 	if namespaceTemp, ok := metadata[common.SessionNameSpaceKey]; ok {
 		if v, ok := namespaceTemp.(string); ok {

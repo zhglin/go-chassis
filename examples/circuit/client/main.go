@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-chassis/go-chassis"
 	"github.com/go-chassis/openlog"
 
-	"github.com/go-chassis/go-chassis/v2"
 	_ "github.com/go-chassis/go-chassis/v2/bootstrap"
 	"github.com/go-chassis/go-chassis/v2/client/rest"
 	"github.com/go-chassis/go-chassis/v2/core"
@@ -27,7 +27,6 @@ func main() {
 		"user": "peter",
 	})
 	invoker := core.NewRestInvoker()
-
 	for i := 0; i < 500; i++ {
 		req, err := rest.NewRequest("GET", "http://ErrServer/lock", nil)
 		if err != nil {
@@ -35,6 +34,7 @@ func main() {
 			return
 		}
 		resp, err := invoker.ContextDo(ctx, req)
+
 		if err != nil {
 			openlog.Error(fmt.Sprintf("deadlock request failed. %s", err.Error()))
 		} else {

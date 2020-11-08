@@ -20,6 +20,7 @@ const (
 
 //MergeLocalAndRemoteConfig get router config from archaius,
 //including local file,memory and config server
+// 从配置中心获取rule配置
 func MergeLocalAndRemoteConfig() (map[string][]*config.RouteRule, error) {
 	destinations := make(map[string][]*config.RouteRule)
 	//then get config from archaius and simply overwrite rule from file
@@ -39,6 +40,7 @@ func MergeLocalAndRemoteConfig() (map[string][]*config.RouteRule, error) {
 	return destinations, nil
 }
 
+// 解析v2 rule
 func processV2Rule(ruleV2Map map[string]interface{}, destinations map[string][]*config.RouteRule) (map[string][]*config.RouteRule, error) {
 	for k, v := range ruleV2Map {
 		value, ok := v.(string)
@@ -73,6 +75,7 @@ func processV1Rule(ruleV1Map map[string]interface{}, destinations map[string][]*
 	return nil, nil
 }
 
+// 处理从配置中心读取的router配置
 func prepareRule(configMap map[string]interface{}, ruleV1Map map[string]interface{}, ruleV2Map map[string]interface{}) {
 	for k, v := range configMap {
 		if strings.HasPrefix(k, DarkLaunchPrefix) {

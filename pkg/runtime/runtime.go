@@ -24,6 +24,7 @@ var Environment string
 var Schemas []string
 
 //App is app info
+// app id
 var App string
 
 //Version is version info

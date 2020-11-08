@@ -19,22 +19,27 @@ const (
 )
 
 // ValidateAndApplyFault validate and apply the fault rule
+// 配置校验并并生效
 func ValidateAndApplyFault(fault *model.Fault, inv *invocation.Invocation) error {
+	// 校验延迟配置
 	if fault.Delay != (model.Delay{}) {
 		if err := ValidateFaultDelay(fault); err != nil {
 			return err
 		}
 
+		// 执行延迟
 		if err := ApplyFaultInjection(fault, inv, fault.Delay.Percent, "delay"); err != nil {
 			return err
 		}
 	}
 
+	// 校验终止配置
 	if fault.Abort != (model.Abort{}) {
 		if err := ValidateFaultAbort(fault); err != nil {
 			return err
 		}
 
+		// 执行终止
 		if err := ApplyFaultInjection(fault, inv, fault.Abort.Percent, "abort"); err != nil {
 			return err
 		}
@@ -44,6 +49,7 @@ func ValidateAndApplyFault(fault *model.Fault, inv *invocation.Invocation) error
 }
 
 // ValidateFaultAbort checks that fault injection abort HTTP status and Percentage is valid
+// 校验终止的配置
 func ValidateFaultAbort(fault *model.Fault) error {
 	if fault.Abort.HTTPStatus < 100 || fault.Abort.HTTPStatus > 600 {
 		return errors.New("invalid http fault status")
@@ -56,11 +62,14 @@ func ValidateFaultAbort(fault *model.Fault) error {
 }
 
 // ValidateFaultDelay checks that fault injection delay fixed delay and Percentage is valid
+// 延迟的配置校验
 func ValidateFaultDelay(fault *model.Fault) error {
+	// 不在0-1000
 	if fault.Delay.Percent < MinPercentage || fault.Delay.Percent > MaxPercentage {
 		return errors.New("percentage must be in range 0..100")
 	}
 
+	// 延迟时间小于1毫秒
 	if fault.Delay.FixedDelay < time.Millisecond {
 		return errors.New("duration must be greater than 1ms")
 	}
@@ -69,7 +78,9 @@ func ValidateFaultDelay(fault *model.Fault) error {
 }
 
 //ApplyFaultInjection abort/delay
+// 生效
 func ApplyFaultInjection(fault *model.Fault, inv *invocation.Invocation, configuredPercent int, faultType string) error {
+	// 随机生效
 	if rand.Intn(MaxPercentage)+1 <= configuredPercent {
 		return injectFault(faultType, fault)
 	}
@@ -78,6 +89,7 @@ func ApplyFaultInjection(fault *model.Fault, inv *invocation.Invocation, configu
 
 //injectFault apply fault based on the type
 func injectFault(faultType string, fault *model.Fault) error {
+	// 延迟
 	if faultType == "delay" {
 		time.Sleep(fault.Delay.FixedDelay)
 	}

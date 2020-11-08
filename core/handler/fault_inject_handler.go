@@ -26,14 +26,17 @@ func newFaultHandler() Handler {
 }
 
 // Name function returns fault-inject string
+// 错误注入
 func (rl *FaultHandler) Name() string {
 	return "fault-inject"
 }
 
 // Handle is to handle the API
 func (rl *FaultHandler) Handle(chain *Chain, inv *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 配置
 	faultConfig := GetFaultConfig(inv.Protocol, inv.MicroServiceName, inv.SchemaID, inv.OperationID)
 
+	// 协议对应的函数
 	faultInject, ok := fault.Injectors[inv.Protocol]
 	r := &invocation.Response{}
 	if !ok {
@@ -47,14 +50,14 @@ func (rl *FaultHandler) Handle(chain *Chain, inv *invocation.Invocation, cb invo
 	faultValue := faultConfig
 	err := faultInject(faultValue, inv)
 	if err != nil {
-		if strings.Contains(err.Error(), "injecting abort") {
+		if strings.Contains(err.Error(), "injecting abort") { // 执行的是终止
 			switch inv.Reply.(type) {
 			case *http.Response:
 				resp := inv.Reply.(*http.Response)
 				resp.StatusCode = faultConfig.Abort.HTTPStatus
 			}
 			r.Status = faultConfig.Abort.HTTPStatus
-		} else {
+		} else { // 延迟
 			switch inv.Reply.(type) {
 			case *http.Response:
 				resp := inv.Reply.(*http.Response)

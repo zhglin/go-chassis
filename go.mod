@@ -7,6 +7,7 @@ require (
 	github.com/emicklei/go-restful v2.12.0+incompatible
 	github.com/go-chassis/foundation v0.1.1-0.20200825060850-b16bf420f7b3
 	github.com/go-chassis/go-archaius v1.3.6-0.20200917065837-57a2bca2b7ff
+	github.com/go-chassis/go-chassis v0.0.0-20200716073336-4183d5dd1246
 	github.com/go-chassis/go-restful-swagger20 v1.0.3-0.20200310030431-17d80f34264f
 	github.com/go-chassis/openlog v1.1.2
 	github.com/go-chassis/seclog v1.3.0
@@ -22,6 +23,7 @@ require (
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/apimachinery v0.17.0
 	k8s.io/client-go v0.17.0
+	k8s.io/utils v0.0.0-20191114200735-6ca3b61696b6
 )
 
 go 1.13

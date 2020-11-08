@@ -162,38 +162,45 @@ func GetFilterNamesKey() string {
 }
 
 // GetFaultInjectionOperationKey get fault injection operation key
+// 前缀key:servicecomb.governance.Consumer.{microServiceName}.schemas.{schema}.operations.{operation}.policy.fault
 func GetFaultInjectionOperationKey(microServiceName, schema, operation string) string {
 	return strings.Join([]string{FixedPrefix, PropertyGovernance, PropertyConsumer, microServiceName,
 		PropertySchema, schema, PropertyOperations, operation, PropertyPolicy, PropertyFault}, ".")
 }
 
 // GetFaultInjectionSchemaKey get fault injection schema key
+// 前缀key:servicecomb.governance.Consumer.{microServiceName}.schemas.{schema}.policy.fault
 func GetFaultInjectionSchemaKey(microServiceName, schema string) string {
 	return strings.Join([]string{FixedPrefix, PropertyGovernance, PropertyConsumer, microServiceName,
 		PropertySchema, schema, PropertyPolicy, PropertyFault}, ".")
 }
 
 // GetFaultInjectionServiceKey get fault injection service key
+// 前缀key:servicecomb.governance.Consumer.{microServiceName}.policy.fault
 func GetFaultInjectionServiceKey(microServiceName string) string {
 	return strings.Join([]string{FixedPrefix, PropertyGovernance, PropertyConsumer, microServiceName, PropertyPolicy, PropertyFault}, ".")
 }
 
 // GetFaultInjectionGlobalKey get fault injection global key
+// 前缀key:servicecomb.governance.Consumer._global.policy.fault
 func GetFaultInjectionGlobalKey() string {
 	return strings.Join([]string{FixedPrefix, PropertyGovernance, PropertyConsumer, PropertyGlobal, PropertyPolicy, PropertyFault}, ".")
 }
 
 // GetFaultAbortPercentKey get fault abort percentage key
+// {key}.protocols.{protocol}.abort.percent
 func GetFaultAbortPercentKey(key, protocol string) string {
 	return strings.Join([]string{key, PropertyProtocol, protocol, PropertyAbort, PropertyPercent}, ".")
 }
 
 // GetFaultAbortHTTPStatusKey get fault abort http status key
+// {key}.protocols.{protocol}.abort.httpStatus
 func GetFaultAbortHTTPStatusKey(key, protocol string) string {
 	return strings.Join([]string{key, PropertyProtocol, protocol, PropertyAbort, PropertyHTTPStatus}, ".")
 }
 
 // GetFaultDelayPercentKey get fault daley percentage key
+// {key}.protocols.{protocol}.delay.percent
 func GetFaultDelayPercentKey(key, protocol string) string {
 	return strings.Join([]string{key, PropertyProtocol, protocol, PropertyDelay, PropertyPercent}, ".")
 }

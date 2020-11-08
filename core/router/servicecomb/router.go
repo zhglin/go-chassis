@@ -12,7 +12,7 @@ var cseRouter *Router
 
 //Router is cse router service
 type Router struct {
-	routeRule map[string][]*config.RouteRule
+	routeRule map[string][]*config.RouteRule // service=>[]rule
 	lock      sync.RWMutex
 }
 
@@ -24,6 +24,7 @@ func (r *Router) SetRouteRule(rr map[string][]*config.RouteRule) {
 }
 
 //FetchRouteRuleByServiceName get rules for service
+// 获取指定service的rule
 func (r *Router) FetchRouteRuleByServiceName(service string) []*config.RouteRule {
 	r.lock.RLock()
 	defer r.lock.RUnlock()
@@ -42,14 +43,18 @@ func (r *Router) ListRouteRule() map[string][]*config.RouteRule {
 }
 
 //Init init router config
+// 初始化router组件
 func (r *Router) Init(o router.Options) error {
+	// 配置中心watch
 	err := archaius.RegisterListener(&routeRuleEventListener{}, DarkLaunchKey, DarkLaunchKeyV2)
 	if err != nil {
 		openlog.Error(err.Error())
 	}
+	// 设置rule配置
 	return r.LoadRules()
 }
 
+// 创建cse类型的router
 func newRouter() (router.Router, error) {
 	cseRouter = &Router{
 		routeRule: make(map[string][]*config.RouteRule),
@@ -59,7 +64,9 @@ func newRouter() (router.Router, error) {
 }
 
 // LoadRules load all the router config
+// 初始化router配置
 func (r *Router) LoadRules() error {
+	// 加载配置
 	configs, err := MergeLocalAndRemoteConfig()
 	if err != nil {
 		openlog.Error("init route rule failed", openlog.WithTags(openlog.Tags{
@@ -67,6 +74,7 @@ func (r *Router) LoadRules() error {
 		}))
 	}
 
+	// 校验 设置
 	if router.ValidateRule(configs) {
 		r.routeRule = configs
 		openlog.Info("load route rule", openlog.WithTags(openlog.Tags{
@@ -77,6 +85,7 @@ func (r *Router) LoadRules() error {
 }
 
 // SetRouteRuleByKey set route rule by key
+// 设置service对应的rule
 func (r *Router) SetRouteRuleByKey(k string, rr []*config.RouteRule) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -99,6 +108,7 @@ func (r *Router) DeleteRouteRuleByKey(k string) {
 		}))
 }
 
+// 注册route组件
 func init() {
 	router.InstallRouterPlugin("cse", newRouter)
 }

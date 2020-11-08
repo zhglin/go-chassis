@@ -27,10 +27,13 @@ func GetAbortPercent(protocol, microServiceName, schema, operation string) int {
 		key = GetFaultInjectionSchemaKey(microServiceName, schema)
 		abortPercent = archaius.GetInt(GetFaultAbortPercentKey(key, protocol), DefaultAbortPercent)
 	}
+
 	if abortPercent == 0 && microServiceName != "" {
 		key = GetFaultInjectionServiceKey(microServiceName)
 		abortPercent = archaius.GetInt(GetFaultAbortPercentKey(key, protocol), DefaultAbortPercent)
 	}
+
+	// 全局默认的
 	if abortPercent == 0 {
 		key = GetFaultInjectionGlobalKey()
 		abortPercent = archaius.GetInt(GetFaultAbortPercentKey(key, protocol), DefaultAbortPercent)

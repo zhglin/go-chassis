@@ -125,8 +125,8 @@ type Filter func(instances []*registry.MicroServiceInstance, criteria []*Criteri
 // 添加支持的balancer
 func Enable(strategyName string) error {
 	openlog.Info("Enable LoadBalancing")
-	InstallStrategy(StrategyRandom, newRandomStrategy) // 随机
-	InstallStrategy(StrategyRoundRobin, newRoundRobinStrategy) // 轮询
+	InstallStrategy(StrategyRandom, newRandomStrategy)                       // 随机
+	InstallStrategy(StrategyRoundRobin, newRoundRobinStrategy)               // 轮询
 	InstallStrategy(StrategySessionStickiness, newSessionStickinessStrategy) // 会话
 
 	if strategyName == "" {

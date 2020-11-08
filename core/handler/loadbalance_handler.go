@@ -58,12 +58,15 @@ func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.Load
 		return nil, lbErr
 	}
 
+	// 设置默认protocol
 	if i.Protocol == "" {
 		for k := range ins.EndpointsMap {
 			i.Protocol = k
 			break
 		}
 	}
+
+	// 判断ins是否支持protocol
 	protocolServer := util.GenProtoEndPoint(i.Protocol, i.Port)
 	ep, ok := ins.EndpointsMap[protocolServer]
 	if !ok {

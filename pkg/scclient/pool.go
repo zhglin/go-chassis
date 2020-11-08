@@ -15,14 +15,14 @@ var instance *AddressPool
 const (
 	available               string = "available"   // 可用
 	unavailable             string = "unavailable" // 不可用
-	defaultCheckSCIInterval        = 25 // default sc instance health check interval in second
+	defaultCheckSCIInterval        = 25            // default sc instance health check interval in second
 )
 
 // AddressPool registry address pool
 // register的可用地址
 type AddressPool struct {
-	addressMap map[string]string  // 所有获取的address
-	status     map[string]string  // 每个address的可用状态
+	addressMap map[string]string // 所有获取的address
+	status     map[string]string // 每个address的可用状态
 	mutex      sync.RWMutex
 }
 

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// 流量标记
 package governance
 
 import (
@@ -29,23 +29,27 @@ const (
 	KindRateLimitingPrefix = "servicecomb.rateLimiting"
 )
 
+// 默认的解析函数
 var processFuncMap = map[string]ProcessFunc{
 	//build-in
-	KindMatchPrefix:        ProcessMatch,
-	KindRateLimitingPrefix: ProcessLimiter,
+	KindMatchPrefix:        ProcessMatch,   // 匹配
+	KindRateLimitingPrefix: ProcessLimiter, // 限流
 }
 
 //ProcessFunc process a config
+// 解析函数类型
 type ProcessFunc func(key string, value string) error
 
 //InstallProcessor install a func to process config,
 //if a config key matches the key prefix, then the func will process the config
+// 注册不同配置的解析函数
 func InstallProcessor(keyPrefix string, process ProcessFunc) {
 	processFuncMap[keyPrefix] = process
 }
 
 //Init go through all governance configs
 //and call process func according to key prefix
+// 初始化 读取 解析配置
 func Init() {
 	configMap := archaius.GetConfigs()
 	openlog.Info("process all governance rules")
@@ -55,6 +59,7 @@ func Init() {
 			openlog.Warn("not string format,key:" + k)
 		}
 		openlog.Debug(k + ":" + value)
+		// 解析
 		for prefix, f := range processFuncMap {
 			if strings.HasPrefix(k, prefix) {
 				err := f(k, value)

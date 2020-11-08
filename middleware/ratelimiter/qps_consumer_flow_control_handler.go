@@ -20,10 +20,12 @@ const (
 )
 
 // ConsumerRateLimiterHandler consumer rate limiter handler
+// consumer端的依赖的各个服务的限流
 type ConsumerRateLimiterHandler struct{}
 
 // Handle is handles the consumer rate limiter APIs
 func (rl *ConsumerRateLimiterHandler) Handle(chain *handler.Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 获取配置
 	rlc := control.DefaultPanel.GetRateLimiting(*i, common.Consumer)
 	if !rlc.Enabled {
 		chain.Next(i, cb)
@@ -66,6 +68,8 @@ func newConsumerRateLimiterHandler() handler.Handler {
 func (rl *ConsumerRateLimiterHandler) Name() string {
 	return "ratelimiter-consumer"
 }
+
+// 针对service的精确化流控
 func init() {
 	err := handler.RegisterHandler(Consumer, newConsumerRateLimiterHandler)
 	if err != nil {

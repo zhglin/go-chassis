@@ -9,6 +9,7 @@ import (
 )
 
 // ProviderRateLimiterHandler provider rate limiter handler
+// provider自身的限流
 type ProviderRateLimiterHandler struct{}
 
 // Handle is to handle provider rateLimiter things

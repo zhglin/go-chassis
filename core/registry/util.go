@@ -29,7 +29,7 @@ func GetProtocolMap(eps []string) (map[string]*Endpoint, string) {
 	var p string
 	for _, addr := range eps {
 		proto := "" // proto
-		ep := ""  // address
+		ep := ""    // address
 		idx := strings.Index(addr, protocolSymbol)
 		if idx == -1 {
 			ep = addr

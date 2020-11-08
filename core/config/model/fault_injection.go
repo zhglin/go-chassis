@@ -9,18 +9,18 @@ type FaultProtocolStruct struct {
 
 // Fault fault struct
 type Fault struct {
-	Abort Abort `yaml:"abort"`
-	Delay Delay `yaml:"delay"`
+	Abort Abort `yaml:"abort"` // 终止
+	Delay Delay `yaml:"delay"` // 延迟
 }
 
 // Abort abort struct
 type Abort struct {
-	Percent    int `yaml:"percent"`
-	HTTPStatus int `yaml:"httpStatus"`
+	Percent    int `yaml:"percent"`    // 百分比
+	HTTPStatus int `yaml:"httpStatus"` // 返回的code
 }
 
 // Delay delay struct
 type Delay struct {
-	Percent    int           `yaml:"percent"`
-	FixedDelay time.Duration `yaml:"fixedDelay"`
+	Percent    int           `yaml:"percent"`    // 百分比
+	FixedDelay time.Duration `yaml:"fixedDelay"` // 延迟时间
 }

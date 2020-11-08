@@ -41,11 +41,11 @@ type MicroServiceInstance struct {
 	InstanceID      string               `json:"instanceID"`
 	HostName        string               `json:"hostName"`
 	ServiceID       string               `json:"serviceID"`
-	DefaultProtocol string               `json:"defaultProtocol"`// 默认的protocol
+	DefaultProtocol string               `json:"defaultProtocol"` // 默认的protocol
 	DefaultEndpoint string               `json:"defaultEndpoint"` // 默认的address
 	Status          string               `json:"status"`
-	EndpointsMap    map[string]*Endpoint `json:"endpointsMap"`
-	Metadata        map[string]string    `json:"metadata"` // key [version=>1.2.3， app=>appId]
+	EndpointsMap    map[string]*Endpoint `json:"endpointsMap"` // key = proto + "-" + port
+	Metadata        map[string]string    `json:"metadata"`     // key [version=>1.2.3， app=>appId]
 	DataCenterInfo  *DataCenterInfo      `json:"dataCenterInfo"`
 }
 
@@ -98,7 +98,7 @@ type DataCenterInfo struct {
 // it is used in route management
 type SourceInfo struct {
 	Name string
-	Tags map[string]string
+	Tags map[string]string // app => appId    version => ver
 }
 
 // Schema to represents schema info

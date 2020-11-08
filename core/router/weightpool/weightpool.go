@@ -10,12 +10,14 @@ import (
 var weightPool *SafePool
 var once sync.Once
 
+// 全局weightPool
 func init() { once.Do(func() { weightPool = &SafePool{pool: map[string]*Pool{}} }) }
 
 // GetPool returns singleton of weightPool
 func GetPool() *SafePool { return weightPool }
 
 // SafePool is a cache for pool of all destination
+// service对应的weightPool
 type SafePool struct {
 	sync.RWMutex
 	pool map[string]*Pool
@@ -30,6 +32,7 @@ func (s *SafePool) Get(key string) (*Pool, bool) {
 }
 
 // Set can set pool to safe cache
+// 添加serviceName 对应的 weightPool
 func (s *SafePool) Set(key string, value *Pool) {
 	s.Lock()
 	s.pool[key] = value
@@ -48,14 +51,15 @@ type Pool struct {
 	tags []config.RouteTag
 
 	mu  sync.RWMutex
-	gcd int
-	max int
+	gcd int // 各个weight的最大公约数
+	max int // 最大的weight
 	i   int
 	cw  int
-	num int
+	num int // tags数量
 }
 
 // NewPool returns pool for provided tags
+// 创建pool
 func NewPool(routeTags ...*config.RouteTag) *Pool {
 	var total int
 	p := &Pool{tags: make([]config.RouteTag, len(routeTags))}
@@ -67,6 +71,7 @@ func NewPool(routeTags ...*config.RouteTag) *Pool {
 		p.tags[i] = *t
 	}
 
+	// 不足100 补足
 	if total < 100 {
 		latestT := config.RouteTag{
 			Weight: 100 - total,
@@ -84,6 +89,7 @@ func NewPool(routeTags ...*config.RouteTag) *Pool {
 }
 
 // PickOne returns tag according to its weight
+// 选择routeTag
 func (p *Pool) PickOne() *config.RouteTag {
 	if p.num == 0 || p.max == 0 {
 		return nil
@@ -110,6 +116,7 @@ func (p *Pool) PickOne() *config.RouteTag {
 	}
 }
 
+// 重置p.gcd  p.max
 func (p *Pool) refreshGCD(t *config.RouteTag) {
 	p.gcd = gcd(p.gcd, t.Weight)
 	if p.max < t.Weight {
@@ -117,6 +124,7 @@ func (p *Pool) refreshGCD(t *config.RouteTag) {
 	}
 }
 
+// 获取最大公约数
 func gcd(a, b int) int {
 	if b == 0 {
 		return a

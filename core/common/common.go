@@ -66,7 +66,7 @@ const (
 const (
 	ProtocolRest    = "rest"
 	ProtocolHighway = "highway"
-	LBSessionID     = "go-chassisLB"
+	LBSessionID     = "go-chassisLB" // cookie名称
 )
 
 // configuration placeholders
@@ -75,10 +75,10 @@ const (
 )
 
 // SessionNameSpaceKey metadata session namespace key
-const SessionNameSpaceKey = "_Session_Namespace"
+const SessionNameSpaceKey = "_Session_Namespace" // session缓冲中的对应的key meteData中的value对应不同的service
 
 // SessionNameSpaceDefaultValue default session namespace value
-const SessionNameSpaceDefaultValue = "default"
+const SessionNameSpaceDefaultValue = "default" // 默认的session的cookie名
 
 // DefaultKey default key
 const DefaultKey = "default"
@@ -100,11 +100,11 @@ const CallerKey = "caller"
 
 //service comb headers
 const (
-	HeaderSourceName = "x-cse-src-microservice"  // 请求的源service
+	HeaderSourceName = "x-cse-src-microservice" // 请求的源service
 	// HeaderXCseContent is constant for header , get some json msg about HeaderSourceName like {"k":"v"}
 	HeaderXCseContent = "x-cse-context"
 
-	HeaderMark = "X-Mark"
+	HeaderMark = "X-Mark" // 匹配到mark 流量标记
 )
 
 const (

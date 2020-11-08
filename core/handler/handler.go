@@ -40,12 +40,12 @@ const (
 func init() {
 	//register build-in handler,don't need to call RegisterHandlerFunc
 	HandlerFuncMap[Transport] = newTransportHandler
-	HandlerFuncMap[Loadbalance] = newLBHandler
-	HandlerFuncMap[TracingProvider] = newTracingProviderHandler
-	HandlerFuncMap[TracingConsumer] = newTracingConsumerHandler
-	HandlerFuncMap[Router] = newRouterHandler
-	HandlerFuncMap[FaultInject] = newFaultHandler
-	HandlerFuncMap[TrafficMarker] = newMarkHandler
+	HandlerFuncMap[Loadbalance] = newLBHandler                  // 负载军黑
+	HandlerFuncMap[TracingProvider] = newTracingProviderHandler // 服务器端追踪
+	HandlerFuncMap[TracingConsumer] = newTracingConsumerHandler // 客户端追踪
+	HandlerFuncMap[Router] = newRouterHandler                   // 路由
+	HandlerFuncMap[FaultInject] = newFaultHandler               // 故障注入
+	HandlerFuncMap[TrafficMarker] = newMarkHandler              // 流量打标
 }
 
 // Handler interface for handlers

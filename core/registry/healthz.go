@@ -19,7 +19,7 @@ const (
 var defaultHealthChecker = &HealthChecker{}
 
 func init() {
-	defaultHealthChecker.Run()  // 初始化并执行checker
+	defaultHealthChecker.Run() // 初始化并执行checker
 }
 
 // WrapInstance is the struct defines an instance object with appID/serviceName/version
@@ -43,7 +43,7 @@ func (i *WrapInstance) ServiceKey() string {
 // HealthChecker is the struct judges the instance health in the removing simpleCache
 // 检查被删除的instance
 type HealthChecker struct {
-	pendingCh chan *WrapInstance  // 需要检查的instance
+	pendingCh chan *WrapInstance // 需要检查的instance
 	delCh     chan map[string]*WrapInstance
 }
 

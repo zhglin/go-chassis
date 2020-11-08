@@ -34,7 +34,7 @@ type InvokeOptions struct {
 	URLPath      string
 	MethodType   string
 	// local data
-	Metadata map[string]interface{}
+	Metadata map[string]interface{} // common.SessionNameSpaceKey
 	// tags for router
 	RouteTags utiltags.Tags
 }

@@ -23,7 +23,7 @@ const (
 )
 
 // IsEnabled check enable
-var IsEnabled bool  // 是否已开启
+var IsEnabled bool // 是否已开启
 var mu sync.Mutex
 
 // DefaultRegistrator is the client of registry, you can call the method of it to interact with microservice registry

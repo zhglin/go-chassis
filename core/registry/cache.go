@@ -72,7 +72,7 @@ func GetIPIndex(ip string) *SourceInfo {
 }
 
 // GetProvidersFromCache get local provider simpleCache
-// 获取依赖service
+// 获取依赖service 所有的版本
 func GetProvidersFromCache() []*MicroService {
 	microServices := make([]*MicroService, 0)
 	items := ProvidersMicroServiceCache.Items()
