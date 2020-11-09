@@ -72,16 +72,8 @@ github.com/go-chassis/foundation v0.1.1-0.20200825060850-b16bf420f7b3 h1:c+bwT0q
 github.com/go-chassis/foundation v0.1.1-0.20200825060850-b16bf420f7b3/go.mod h1:21/ajGtgJlWTCeM0TxGJdRhO8bJkKirWyV8Stlh6g6c=
 github.com/go-chassis/go-archaius v1.3.2 h1:b52voYtSL+fukmvg/rsn/quw/hgDWtV945adl0VV8Lg=
 github.com/go-chassis/go-archaius v1.3.2/go.mod h1:nzRL1sSodtgeCZMzCNu0y2LPH5zz7chp8uaQ0GS0x6I=
-github.com/go-chassis/go-archaius v1.3.3 h1:phNCPOi5tIMj6SBLJCoD2GcE2f43rk0I3gdpHqm90Pg=
-github.com/go-chassis/go-archaius v1.3.3/go.mod h1:K9gt8DIj582EQfKQdZV+jWBKNeevwaM+2cdLQgpOlZM=
-github.com/go-chassis/go-archaius v1.3.4 h1:M9lMavqcauLVkRzpvmfIUPpPFxaw6PYjaPnMdSnnZAQ=
-github.com/go-chassis/go-archaius v1.3.4/go.mod h1:K9gt8DIj582EQfKQdZV+jWBKNeevwaM+2cdLQgpOlZM=
-github.com/go-chassis/go-archaius v1.3.5-0.20200917044649-769555c43be4 h1:a24XVUypNocwwC6sXZXWykkc7hSfgzbkn2/x2E7zwVk=
-github.com/go-chassis/go-archaius v1.3.5-0.20200917044649-769555c43be4/go.mod h1:K9gt8DIj582EQfKQdZV+jWBKNeevwaM+2cdLQgpOlZM=
-github.com/go-chassis/go-archaius v1.3.5 h1:ZK429eo5HymXSrZ2E0/4dcjPhTXTh+Oo72IPSlTcs7I=
-github.com/go-chassis/go-archaius v1.3.5/go.mod h1:K9gt8DIj582EQfKQdZV+jWBKNeevwaM+2cdLQgpOlZM=
-github.com/go-chassis/go-archaius v1.3.6-0.20200917065837-57a2bca2b7ff h1:Cc6dMdaK+PK8A2F30gkn6eMu+zZ6btER3qzTluYvD2w=
-github.com/go-chassis/go-archaius v1.3.6-0.20200917065837-57a2bca2b7ff/go.mod h1:K9gt8DIj582EQfKQdZV+jWBKNeevwaM+2cdLQgpOlZM=
+github.com/go-chassis/go-archaius v1.3.6-0.20201103103813-43dd1680ebfb h1:+6mPi1HDASveJ72gWkH0rmq5hNz/rTZhrIgRXjFnSRE=
+github.com/go-chassis/go-archaius v1.3.6-0.20201103103813-43dd1680ebfb/go.mod h1:K9gt8DIj582EQfKQdZV+jWBKNeevwaM+2cdLQgpOlZM=
 github.com/go-chassis/go-chassis v0.0.0-20200716073336-4183d5dd1246 h1:yxtoclu0QclYtwXxo4AYTCPJsYFM/Xo2/5C1HLRnzqg=
 github.com/go-chassis/go-chassis v0.0.0-20200716073336-4183d5dd1246/go.mod h1:S7RbnpeTWBqZ4+UxGAs05a6qdhDyWKpTNuil8FYNiME=
 github.com/go-chassis/go-restful-swagger20 v1.0.3-0.20200310030431-17d80f34264f h1:5QmmNpVcGqIc6tuKNe5EAI4PA8Yn2EL9Oee7YdcJ4PE=
@@ -92,8 +84,6 @@ github.com/go-chassis/openlog v1.1.2 h1:LgGfwwOhpU8c6URV6ADpaRBPVY7Ph1C28jCQ6zzQ
 github.com/go-chassis/openlog v1.1.2/go.mod h1:+eYCADVxWyJkwsFMUBrMxyQlNqW+UUsCxvR2LrYZUaA=
 github.com/go-chassis/paas-lager v1.1.1 h1:/6wqawUGjPCpd57A/tzJzgC4MnEhNuigbayQS+2VWPQ=
 github.com/go-chassis/paas-lager v1.1.1/go.mod h1:tILYbn3+0jjCxhY6/ue9L8eRq+VJ60U6VYIdugqchB4=
-github.com/go-chassis/seclog v1.2.2 h1:q6GH1ljjmCa3D00IM2XOneGGveCpuzY0T/UGoxZV/s4=
-github.com/go-chassis/seclog v1.2.2/go.mod h1:nylyP3LMsninQT6HVfF7p7MgrPoLdf+HWXnc4Y63IN4=
 github.com/go-chassis/seclog v1.3.0 h1:ofjF+GpDd7YFdxa6xk13brZfVSKMdZoQVPoCWjFHGUk=
 github.com/go-chassis/seclog v1.3.0/go.mod h1:a/zGvX5BRiwtq/O0fRqS6VWjrBaXYtqFJBx3EX9xzSE=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
