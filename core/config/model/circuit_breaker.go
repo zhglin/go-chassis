@@ -25,7 +25,7 @@ type IsolationWrapper struct {
 
 // CircuitWrapper circuit wrapper structure
 type CircuitWrapper struct {
-	Scope    string             `yaml:"scope"`
+	Scope    string             `yaml:"scope"` // 生效范围 api，instance，instance-api
 	Consumer CircuitBreakerSpec `yaml:"Consumer"`
 	Provider CircuitBreakerSpec `yaml:"Provider"`
 }
@@ -44,9 +44,11 @@ type FallbackPolicyWrapper struct {
 
 // IsolationSpec isolation speciafications
 type IsolationSpec struct {
-	TimeoutInMilliseconds int                      `yaml:"timeoutInMilliseconds"`
-	MaxConcurrentRequests int                      `yaml:"maxConcurrentRequests"`
-	AnyService            map[string]IsolationSpec `yaml:",inline"`
+	// 全局的service的超时时间
+	TimeoutInMilliseconds int `yaml:"timeoutInMilliseconds"`
+	MaxConcurrentRequests int `yaml:"maxConcurrentRequests"`
+	// 不同service
+	AnyService map[string]IsolationSpec `yaml:",inline"`
 }
 
 // CircuitBreakerSpec circuit breaker specifications
@@ -62,15 +64,17 @@ type CircuitBreakerSpec struct {
 
 // FallbackSpec fallback specifications
 type FallbackSpec struct {
-	Enabled               bool                              `yaml:"enabled"`
-	Force                 bool                              `yaml:"force"`
-	MaxConcurrentRequests int                               `yaml:"maxConcurrentRequests"`
-	AnyService            map[string]FallbackPropertyStruct `yaml:",inline"`
+	// 全局配置
+	Enabled               bool `yaml:"enabled"` // 使用使用fallback函数
+	Force                 bool `yaml:"force"`   // 是否强制fallback
+	MaxConcurrentRequests int  `yaml:"maxConcurrentRequests"`
+	// 不同service配置
+	AnyService map[string]FallbackPropertyStruct `yaml:",inline"`
 }
 
 // FallbackPolicySpec fallback policy specifications
 type FallbackPolicySpec struct {
-	Policy     string                                  `yaml:"policy"`
+	Policy     string                                  `yaml:"policy"` // fallback函数类型
 	AnyService map[string]FallbackPolicyPropertyStruct `yaml:",inline"`
 }
 

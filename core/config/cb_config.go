@@ -30,6 +30,7 @@ const (
 var cbMutex = sync.RWMutex{}
 
 // GetFallbackEnabled get fallback enabled
+// 获取熔断对象是否设置强制熔断的配置 针对command的 否则 provider || consumer
 func GetFallbackEnabled(command, t string) bool {
 	return archaius.GetBool(GetFallbackEnabledKey(command),
 		archaius.GetBool(GetDefaultGetFallbackEnabledKey(t), DefaultFallbackEnable))
@@ -89,12 +90,14 @@ func GetTimeoutDuration(service, t string) time.Duration {
 }
 
 // GetMaxConcurrentRequests get max concurrent requests
+// t == consumer||provider 只返回MaxConcurrentRequests
 func GetMaxConcurrentRequests(command, t string) int {
 	cbMutex.RLock()
 	global := getIsolationSpec(t).MaxConcurrentRequests
 	if global == 0 {
 		global = DefaultMaxConcurrent
 	}
+	// 读取配置文件
 	m := archaius.GetInt(GetMaxConcurrentKey(command), global)
 	cbMutex.RUnlock()
 	return m
@@ -137,6 +140,7 @@ func GetSleepWindow(command, t string) int {
 }
 
 // GetPolicy get fallback policy
+// 获取fallback函数类型
 func GetPolicy(service, t string) string {
 	cbMutex.RLock()
 	policy := getFallbackPolicySpec(t).AnyService[service].Policy
@@ -150,6 +154,7 @@ func GetPolicy(service, t string) string {
 	return policy
 }
 
+// 区分consumer|provider 返回IsolationProperties
 func getIsolationSpec(command string) model.IsolationSpec {
 	if command == common.Consumer {
 		return GetHystrixConfig().IsolationProperties.Consumer
@@ -164,6 +169,7 @@ func getCircuitBreakerSpec(command string) model.CircuitBreakerSpec {
 	return GetHystrixConfig().CircuitBreakerProperties.Provider
 }
 
+// 区分consumer已经provider的fallBack
 func getFallbackSpec(command string) model.FallbackSpec {
 	if command == common.Consumer {
 		return GetHystrixConfig().FallbackProperties.Consumer
@@ -179,6 +185,7 @@ func getFallbackPolicySpec(command string) model.FallbackPolicySpec {
 }
 
 // GetForceFallback get force fallback
+// t == consumer||provider  只获取force
 func GetForceFallback(service, t string) bool {
 	cbMutex.RLock()
 	fallback := getFallbackSpec(t)

@@ -32,6 +32,7 @@ var ErrFallbackNotExists = errors.New("fallback func does not exist")
 type Fallback func(inv *invocation.Invocation, finish chan *invocation.Response) func(error) error
 
 //Init init functions
+// 初始化fallback类型对应的函数
 func Init() {
 	fallbackFuncMap[ReturnErr] = FallbackErr
 	fallbackFuncMap[ReturnNil] = FallbackNil
@@ -43,6 +44,7 @@ func RegisterFallback(name string, f Fallback) {
 }
 
 //GetFallback return function
+// 获取指定类型对应的fallback
 func GetFallback(name string) (Fallback, error) {
 	f, ok := fallbackFuncMap[name]
 	if !ok {
@@ -52,6 +54,7 @@ func GetFallback(name string) (Fallback, error) {
 }
 
 //FallbackNil return empty response
+//nil类型的fallback
 func FallbackNil(inv *invocation.Invocation, finish chan *invocation.Response) func(error) error {
 	return func(err error) error {
 		// if err is type of hystrix error, return a new response

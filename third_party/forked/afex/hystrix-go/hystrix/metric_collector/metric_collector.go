@@ -10,7 +10,7 @@ import (
 var Registry = metricCollectorRegistry{
 	lock: &sync.RWMutex{},
 	registry: []func(name string) MetricCollector{
-		newDefaultMetricCollector,
+		newDefaultMetricCollector, // 创建默认的metric
 	},
 }
 
@@ -20,6 +20,7 @@ type metricCollectorRegistry struct {
 }
 
 // InitializeMetricCollectors runs the registried MetricCollector Initializers to create an array of MetricCollectors.
+// 创建metricCollector
 func (m *metricCollectorRegistry) InitializeMetricCollectors(name string) []MetricCollector {
 	m.lock.RLock()
 	defer m.lock.RUnlock()

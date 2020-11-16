@@ -43,7 +43,7 @@ func (t *TracingProviderHandler) Handle(chain *Chain, i *invocation.Invocation, 
 	// But server may respond in the callback func too, that we have to remove
 	// span finishing from callback func's inside to outside.
 	chain.Next(i, func(r *invocation.Response) {
-		cb(r)
+		cb(r) // 没有执行
 		switch i.Protocol {
 		case common.ProtocolRest:
 			span.SetTag(tracing.HTTPMethod, i.Metadata[common.RestMethod])

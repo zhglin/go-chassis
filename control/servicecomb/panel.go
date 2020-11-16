@@ -23,11 +23,14 @@ func newPanel(options control.Options) control.Panel {
 }
 
 //GetCircuitBreaker return command , and circuit breaker settings
+// 读取service的hystrix配置  command=>hystrix里的标识符号
 func (p *Panel) GetCircuitBreaker(inv invocation.Invocation, serviceType string) (string, hystrix.CommandConfig) {
 	key := GetCBCacheKey(inv.MicroServiceName, serviceType)
 	command := control.NewCircuitName(serviceType, config.GetHystrixConfig().CircuitBreakerProperties.Scope, inv)
+	// 没有指定service
 	c, ok := CBConfigCache.Get(key)
 	if !ok {
+		// 获取全局的
 		c, _ := CBConfigCache.Get(serviceType)
 		return command, c.(hystrix.CommandConfig)
 

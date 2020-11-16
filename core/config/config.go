@@ -29,6 +29,7 @@ var MicroserviceDefinition *model.ServiceSpec
 var MonitorCfgDef *model.MonitorCfg
 
 //HystrixConfig is having info about isolation, circuit breaker, fallback properities of the micro service
+// hystrix配置
 var HystrixConfig *model.HystrixConfigWrapper
 
 // ErrNoName is used to represent the service name missing error
@@ -179,6 +180,7 @@ func ReadMonitorFromArchaius() error {
 }
 
 // ReadHystrixFromArchaius is unmarshal hystrix configuration file(circuit_breaker.yaml)
+// 读取hystrix配置
 func ReadHystrixFromArchaius() error {
 	HystrixConfig = &model.HystrixConfigWrapper{}
 	err := archaius.UnmarshalConfig(&HystrixConfig)
@@ -197,6 +199,7 @@ func GetLoadBalancing() *model.LoadBalancing {
 }
 
 //GetHystrixConfig return cb config
+// 读取hystrix配置
 func GetHystrixConfig() *model.HystrixConfig {
 	if HystrixConfig != nil {
 		return &HystrixConfig.HystrixConfig

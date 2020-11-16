@@ -81,16 +81,19 @@ func setDefaultLBValue(c *control.LoadBalancingConfig) {
 }
 
 //SaveToCBCache save configs
+// 设置hystrix缓存配置
 func SaveToCBCache(raw *model.HystrixConfig) {
 	openlog.Debug("Loading cb config from archaius into cache")
 	oldKeys := CBConfigCache.Items()
 	newKeys := make(map[string]bool)
 	// if there is no config, none key will be updated
 	if raw != nil {
+		// 设置连接超时时间
 		client.SetTimeoutToClientCache(raw.IsolationProperties)
+		// 设置cache
 		newKeys = reloadCBCache(raw)
 	}
-	// remove outdated keys
+	// remove outdated keys 删除不存在的
 	for old := range oldKeys {
 		if _, ok := newKeys[old]; !ok {
 			CBConfigCache.Delete(old)
@@ -98,6 +101,7 @@ func SaveToCBCache(raw *model.HystrixConfig) {
 	}
 }
 
+// 更新设置hystrix的cache return cacheKey
 func saveEachCB(serviceName, serviceType string) string { //return updated key
 	command := serviceType
 	if serviceName != "" {
@@ -116,26 +120,34 @@ func saveEachCB(serviceName, serviceType string) string { //return updated key
 	cbcCacheKey := GetCBCacheKey(serviceName, serviceType)
 	cbcCacheValue, b := CBConfigCache.Get(cbcCacheKey)
 	formatString := "save circuit breaker config [%#v] for [%s] "
+	// 不存在 设置cache
 	if !b || cbcCacheValue == nil {
 		openlog.Info(fmt.Sprintf(formatString, c, serviceName))
 		CBConfigCache.Set(cbcCacheKey, c, 0)
 		return cbcCacheKey
 	}
+
+	// 已存在 类型不对 重新设置
 	commandConfig, ok := cbcCacheValue.(hystrix.CommandConfig)
 	if !ok {
 		openlog.Info(fmt.Sprintf(formatString, c, serviceName))
 		CBConfigCache.Set(cbcCacheKey, c, 0)
 		return cbcCacheKey
 	}
+
+	// 没变化
 	if c == commandConfig {
 		return cbcCacheKey
 	}
+
+	// 已修改
 	openlog.Info(fmt.Sprintf(formatString, c, serviceName))
 	CBConfigCache.Set(cbcCacheKey, c, 0)
 	return cbcCacheKey
 }
 
 //GetCBCacheKey generate cache key
+// hystrix缓存key
 func GetCBCacheKey(serviceName, serviceType string) string {
 	key := serviceType
 	if serviceName != "" {
@@ -160,11 +172,14 @@ func reloadLBCache(src *model.LoadBalancing) map[string]bool { //return updated 
 	return keys
 }
 
+// 解析hystrix配置 并重置cache
 func reloadCBCache(src *model.HystrixConfig) map[string]bool { //return updated keys
 	keys := make(map[string]bool)
-	// global level config
+	// global level config 	// consumer的全局默认配置
 	k := saveEachCB("", common.Consumer)
 	keys[k] = true
+
+	// provider的全局默认配置
 	k = saveEachCB("", common.Provider)
 	keys[k] = true
 	// get all services who have configs
@@ -176,6 +191,7 @@ func reloadCBCache(src *model.HystrixConfig) map[string]bool { //return updated 
 	// if a service has configurations of IsolationProperties|
 	// CircuitBreakerProperties|FallbackPolicyProperties|FallbackProperties,
 	// it's configuration should be added to cache when framework starts
+	// 获取所有service
 	for _, p := range []interface{}{
 		src.IsolationProperties,
 		src.CircuitBreakerProperties,
@@ -192,14 +208,14 @@ func reloadCBCache(src *model.HystrixConfig) map[string]bool { //return updated 
 			providers = append(providers, services...)
 		}
 	}
-	// remove duplicate service names
+	// remove duplicate service names 去重
 	for _, name := range consumers {
 		consumerMap[name] = true
 	}
 	for _, name := range providers {
 		providerMap[name] = true
 	}
-	// service level config
+	// service level config 生成各个service的配置
 	for name := range consumerMap {
 		k = saveEachCB(name, common.Consumer)
 		keys[k] = true

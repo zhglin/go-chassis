@@ -17,12 +17,12 @@ import (
 // should be attempted, or rejected if the Health of the circuit is too low.
 type CircuitBreaker struct {
 	Name                   string
-	open                   bool
+	open                   bool // 是否开启  true正常  false熔断
 	enabled                bool
 	forceOpen              bool
 	forceClosed            bool
 	mutex                  *sync.RWMutex
-	openedOrLastTestedTime int64
+	openedOrLastTestedTime int64 // 设置open=true的时间
 	executorPool           *executorPool
 	Metrics                *metricExchange
 }
@@ -54,6 +54,7 @@ func IsCircuitBreakerOpen(name string) (bool, error) {
 }
 
 // GetCircuit returns the circuit for the given command and whether this call created it.
+// 获取指定name的circuitBreaker
 func GetCircuit(name string) (*CircuitBreaker, bool, error) {
 	circuitBreakersMutex.RLock()
 	_, ok := circuitBreakers[name]
@@ -68,6 +69,7 @@ func GetCircuit(name string) (*CircuitBreaker, bool, error) {
 			return cb, false, nil
 		}
 		openlog.Info(fmt.Sprintf("new circuit [%s] is protecting your service", name))
+		// 不存在 创建
 		circuitBreakers[name] = newCircuitBreaker(name)
 	} else {
 		defer circuitBreakersMutex.RUnlock()
@@ -75,6 +77,8 @@ func GetCircuit(name string) (*CircuitBreaker, bool, error) {
 
 	return circuitBreakers[name], !ok, nil
 }
+
+// 删除指定name的breakers
 func FlushByName(name string) {
 	circuitBreakersMutex.Lock()
 	defer circuitBreakersMutex.Unlock()
@@ -89,6 +93,7 @@ func FlushByName(name string) {
 }
 
 // Flush purges all circuit and metric information from memory.
+// 清空所有breakers 配置变更
 func Flush() {
 	circuitBreakersMutex.Lock()
 	defer circuitBreakersMutex.Unlock()
@@ -101,6 +106,7 @@ func Flush() {
 }
 
 // newCircuitBreaker creates a CircuitBreaker with associated Health
+// 创建CircuitBreaker name唯一标识
 func newCircuitBreaker(name string) *CircuitBreaker {
 	c := &CircuitBreaker{}
 	c.Name = name
@@ -128,6 +134,7 @@ func (circuit *CircuitBreaker) ToggleForceOpen(toggle bool) error {
 
 // IsOpen is called before any Command execution to check whether or
 // not it should be attempted. An "open" circuit means it is disabled.
+// 是否已开启熔断
 func (circuit *CircuitBreaker) IsOpen() bool {
 	circuit.mutex.RLock()
 	o := circuit.forceOpen || circuit.open
@@ -137,12 +144,14 @@ func (circuit *CircuitBreaker) IsOpen() bool {
 		return true
 	}
 
+	// 统计10s内的请求量
 	if uint64(circuit.Metrics.Requests().Sum(time.Now())) < getSettings(circuit.Name).RequestVolumeThreshold {
 		return false
 	}
 
+	// 错误率太高 后续直接开启熔断
 	if !circuit.Metrics.IsHealthy(time.Now()) {
-		// too many failures, open the circuit
+		// too many failures, open the circuit 熔断开启
 		circuit.setOpen()
 		return true
 	}
@@ -154,6 +163,7 @@ func (circuit *CircuitBreaker) IsOpen() bool {
 // When the circuit is open, this call will occasionally return true to measure whether the external service
 // has recovered.
 func (circuit *CircuitBreaker) AllowRequest() bool {
+	// 强制熔断
 	if circuit.forceOpen {
 		return false
 	}
@@ -164,6 +174,7 @@ func (circuit *CircuitBreaker) AllowRequest() bool {
 	return !circuit.IsOpen() || circuit.allowSingleTest()
 }
 
+// 熔断开启期间 尝试调用一次
 func (circuit *CircuitBreaker) allowSingleTest() bool {
 	circuit.mutex.RLock()
 	defer circuit.mutex.RUnlock()
@@ -181,11 +192,13 @@ func (circuit *CircuitBreaker) allowSingleTest() bool {
 	return false
 }
 
+// 开启熔断
 func (circuit *CircuitBreaker) setOpen() {
 
 	circuit.mutex.Lock()
 	defer circuit.mutex.Unlock()
 
+	// 已开启
 	if circuit.open {
 		return
 	}
@@ -196,6 +209,7 @@ func (circuit *CircuitBreaker) setOpen() {
 	circuit.open = true
 }
 
+// 关闭熔断
 func (circuit *CircuitBreaker) setClose() {
 	circuit.mutex.Lock()
 	defer circuit.mutex.Unlock()
@@ -207,15 +221,17 @@ func (circuit *CircuitBreaker) setClose() {
 	openlog.Warn(fmt.Sprintf("hystrix-go: closing circuit %v", circuit.Name))
 
 	circuit.open = false
-	circuit.Metrics.Reset()
+	circuit.Metrics.Reset() // 重置计数器
 }
 
 // ReportEvent records command Metrics for tracking recent error rates and exposing data to the dashboard.
+// 写入请求执行结果事件
 func (circuit *CircuitBreaker) ReportEvent(eventTypes []string, start time.Time, runDuration time.Duration) error {
 	if len(eventTypes) == 0 {
 		return fmt.Errorf("no event types sent for Metrics")
 	}
 
+	// 熔断开启期间 有一个success 就关闭熔断
 	if eventTypes[0] == "success" && circuit.open {
 		circuit.setClose()
 	}

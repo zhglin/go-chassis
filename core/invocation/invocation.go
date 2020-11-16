@@ -42,7 +42,7 @@ type Invocation struct {
 	OperationID        string                 //correspond struct func name  // request url path
 	Args               interface{}            // 请求 http request
 	URLPathFormat      string                 // url path
-	Reply              interface{}            // 响应 http response
+	Reply              interface{}            // 响应 http response 创建Invocation时就创建了Reply
 	Ctx                context.Context        //ctx can save protocol headers  存储协议headers
 	Metadata           map[string]interface{} //local scope data  需要额外记录的数据，提供给外部使用 例如trace MDMark router
 	RouteTags          utiltags.Tags          //route tags is decided in router handler // balance route

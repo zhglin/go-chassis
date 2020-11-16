@@ -25,9 +25,11 @@ func (bk *BizKeeperConsumerHandler) Handle(chain *handler.Chain, i *invocation.I
 	command, cmdConfig := control.DefaultPanel.GetCircuitBreaker(*i, common.Consumer)
 
 	cmdConfig.MetricsConsumerNum = archaius.GetInt("servicecomb.metrics.circuitMetricsConsumerNum", hystrix.DefaultMetricsConsumerNum)
+	// 设置hystrix配置
 	hystrix.ConfigureCommand(command, cmdConfig)
 
 	finish := make(chan *invocation.Response, 1)
+	// 获取配置的fallbackFunc
 	f, err := GetFallbackFun(command, common.Consumer, i, finish, cmdConfig.ForceFallback)
 	if err != nil {
 		handler.WriteBackErr(err, status.Status(i.Protocol, status.InternalServerError), cb)
@@ -37,7 +39,7 @@ func (bk *BizKeeperConsumerHandler) Handle(chain *handler.Chain, i *invocation.I
 		chain.Next(i, func(resp *invocation.Response) {
 			err = resp.Err
 			select {
-			case finish <- resp:
+			case finish <- resp: //把执行结果传递出去
 			default:
 				// means hystrix error occurred
 			}
@@ -56,10 +58,11 @@ func (bk *BizKeeperConsumerHandler) Handle(chain *handler.Chain, i *invocation.I
 		return
 	}
 
-	cb(<-finish)
+	cb(<-finish) // 执行传递进来的cb函数
 }
 
 // GetFallbackFun get fallback function
+// 是否使用fallback 并获取fallback函数
 func GetFallbackFun(cmd, t string, i *invocation.Invocation, finish chan *invocation.Response, isForce bool) (func(error) error, error) {
 	enabled := config.GetFallbackEnabled(cmd, t)
 	if enabled || isForce {
@@ -96,5 +99,7 @@ func init() {
 		openlog.Error(err.Error())
 	}
 	Init()
+
+	// 开启hystrix监控上报
 	go hystrix.StartReporter()
 }

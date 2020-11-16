@@ -145,14 +145,17 @@ func Close(protocol, service, endpoint string) error {
 }
 
 // SetTimeoutToClientCache set timeout to client
+// 根据hystrix配置设置超时时间
 func SetTimeoutToClientCache(spec model.IsolationWrapper) {
 	sl.Lock()
 	defer sl.Unlock()
 	for _, client := range clients {
 		if client != nil {
+			// 精确service
 			if v, ok := spec.Consumer.AnyService[client.GetOptions().Service]; ok {
 				client.ReloadConfigs(Options{Timeout: time.Duration(v.TimeoutInMilliseconds) * time.Millisecond})
 			} else {
+				// 全局默认
 				client.ReloadConfigs(Options{Timeout: time.Duration(spec.Consumer.TimeoutInMilliseconds) * time.Millisecond})
 			}
 		}

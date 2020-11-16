@@ -13,24 +13,26 @@ import (
 // including circuit health checks and metrics sent to the hystrix dashboard.
 //
 // Metric Collectors do not need Mutexes as they are updated by circuits within a locked context.
+// 默认的计数器
 type DefaultMetricCollector struct {
 	mutex       *sync.RWMutex
 	name        string
-	numRequests *rolling.Number
-	errors      *rolling.Number
+	numRequests *rolling.Number // 总的请求数
+	errors      *rolling.Number // 异常的请求数
 
-	successes     *rolling.Number
-	failures      *rolling.Number
-	rejects       *rolling.Number
-	shortCircuits *rolling.Number
-	timeouts      *rolling.Number
+	successes     *rolling.Number // eun成功的请求数
+	failures      *rolling.Number // run失败的请求数
+	rejects       *rolling.Number // 超过并发限制的请求数
+	shortCircuits *rolling.Number // 被熔断的请求数
+	timeouts      *rolling.Number // 超时的请求数
 
-	fallbackSuccesses *rolling.Number
-	fallbackFailures  *rolling.Number
-	totalDuration     *rolling.Timing
-	runDuration       *rolling.Timing
+	fallbackSuccesses *rolling.Number // fallback执行成功的请求数
+	fallbackFailures  *rolling.Number // fallback执行失败的请求数
+	totalDuration     *rolling.Timing // 请求总的花费时间
+	runDuration       *rolling.Timing // run函数的执行时间
 }
 
+// 创建metricCollector
 func newDefaultMetricCollector(name string) MetricCollector {
 	m := &DefaultMetricCollector{}
 	m.mutex = &sync.RWMutex{}
@@ -125,6 +127,7 @@ func (d *DefaultMetricCollector) IncrementAttempts() {
 
 // IncrementErrors increments the number of errors seen in the latest time bucket.
 // Errors are any result from an attempt that is not a success.
+// 异常的请求数
 func (d *DefaultMetricCollector) IncrementErrors() {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -132,6 +135,7 @@ func (d *DefaultMetricCollector) IncrementErrors() {
 }
 
 // IncrementSuccesses increments the number of successes seen in the latest time bucket.
+// 增加请求成功的计数
 func (d *DefaultMetricCollector) IncrementSuccesses() {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -139,6 +143,7 @@ func (d *DefaultMetricCollector) IncrementSuccesses() {
 }
 
 // IncrementFailures increments the number of failures seen in the latest time bucket.
+// run执行失败的计数
 func (d *DefaultMetricCollector) IncrementFailures() {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -146,6 +151,7 @@ func (d *DefaultMetricCollector) IncrementFailures() {
 }
 
 // IncrementRejects increments the number of rejected requests seen in the latest time bucket.
+// 增加超过并发限制的计数
 func (d *DefaultMetricCollector) IncrementRejects() {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -153,6 +159,7 @@ func (d *DefaultMetricCollector) IncrementRejects() {
 }
 
 // IncrementShortCircuits increments the number of rejected requests seen in the latest time bucket.
+// 增加被熔断的计数
 func (d *DefaultMetricCollector) IncrementShortCircuits() {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -160,6 +167,7 @@ func (d *DefaultMetricCollector) IncrementShortCircuits() {
 }
 
 // IncrementTimeouts increments the number of requests that timed out in the latest time bucket.
+// 增加超时的计数
 func (d *DefaultMetricCollector) IncrementTimeouts() {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -167,6 +175,7 @@ func (d *DefaultMetricCollector) IncrementTimeouts() {
 }
 
 // IncrementFallbackSuccesses increments the number of successful calls to the fallback function in the latest time bucket.
+// 增加fallback执行成功的计数
 func (d *DefaultMetricCollector) IncrementFallbackSuccesses() {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -181,6 +190,7 @@ func (d *DefaultMetricCollector) IncrementFallbackFailures() {
 }
 
 // UpdateTotalDuration updates the total amount of time this circuit has been running.
+// 记录每个请求的总的花费时间
 func (d *DefaultMetricCollector) UpdateTotalDuration(timeSinceStart time.Duration) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -188,6 +198,7 @@ func (d *DefaultMetricCollector) UpdateTotalDuration(timeSinceStart time.Duratio
 }
 
 // UpdateRunDuration updates the amount of time the latest request took to complete.
+// 每个请求run函数的执行时间
 func (d *DefaultMetricCollector) UpdateRunDuration(runDuration time.Duration) {
 	d.mutex.RLock()
 	defer d.mutex.RUnlock()
@@ -195,6 +206,7 @@ func (d *DefaultMetricCollector) UpdateRunDuration(runDuration time.Duration) {
 }
 
 // Reset resets all metrics in this collector to 0.
+// 重置metricCollector
 func (d *DefaultMetricCollector) Reset() {
 	d.mutex.Lock()
 	defer d.mutex.Unlock()

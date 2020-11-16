@@ -28,18 +28,18 @@ var (
 
 type Settings struct {
 	// isolation 属性
-	MaxConcurrentRequests int
+	MaxConcurrentRequests int // 最大的并发请求数
 
 	// circuit break 属性
-	CircuitBreakerEnabled  bool
-	RequestVolumeThreshold uint64
-	SleepWindow            time.Duration
-	ErrorPercentThreshold  int
-	MetricsConsumerNum     int
+	CircuitBreakerEnabled  bool          //是否开启熔断
+	RequestVolumeThreshold uint64        //10s内总的请求量超过此值就触发熔断
+	SleepWindow            time.Duration // 熔断开启期间 间隔多久尝试调用一次
+	ErrorPercentThreshold  int           // 异常请求占总请求的百分比超过此值触发熔断
+	MetricsConsumerNum     int           // 开启的metricsExchange协程数
 	//动态治理
-	ForceFallback bool
-	ForceOpen     bool
-	ForceClose    bool
+	ForceFallback bool // 所有请求全部fallback
+	ForceOpen     bool // 强制开启 请求全部fallback  CircuitBreakerEnabled=true
+	ForceClose    bool // 强制关闭 请求全部不会fallback CircuitBreakerEnabled=true
 }
 
 // CommandConfig is used to tune circuit settings at runtime
@@ -110,6 +110,7 @@ func WithErrorPercent(errorpercent int) CommandConfigOption {
 }
 
 // ConfigureCommand applies settings for a circuit
+// 不同name对应不同的配置
 func ConfigureCommand(name string, config CommandConfig) {
 
 	settingsMutex.Lock()

@@ -35,26 +35,26 @@ func (e FallbackNullError) Error() string {
 type command struct {
 	sync.Mutex
 
-	ticket       *struct{}
-	start        time.Time
+	ticket       *struct{} // 执行令牌
+	start        time.Time //command的开始时间
 	errChan      chan error
-	finished     chan bool
+	finished     chan bool // 执行结束信号
 	fallbackOnce *sync.Once
 	circuit      *CircuitBreaker
 	run          runFunc
-	fallback     fallbackFunc
-	runDuration  time.Duration
-	events       []string
+	fallback     fallbackFunc  // 自定义的fallback函数
+	runDuration  time.Duration // runFunc 执行花费
+	events       []string      // 请求开始到结束经过的状态  run异常会执行fallback 所以是个数组
 	timedOut     bool
 }
 
 var (
 	// ErrMaxConcurrency occurs when too many of the same named command are executed at the same time.
-	ErrMaxConcurrency = CircuitError{Message: "max concurrency"}
+	ErrMaxConcurrency = CircuitError{Message: "max concurrency"} // 超过并发数限制
 	// ErrCircuitOpen returns when an execution attempt "short circuits". This happens due to the circuit being measured as unhealthy.
-	ErrCircuitOpen = CircuitError{Message: "circuit open"}
+	ErrCircuitOpen = CircuitError{Message: "circuit open"} // 熔断开启
 	// ErrForceFallback occurs when force fallback is true
-	ErrForceFallback = CircuitError{Message: "force fallback"}
+	ErrForceFallback = CircuitError{Message: "force fallback"} // 强制fallback
 )
 
 // Go runs your function while tracking the health of previous calls to it.
@@ -64,9 +64,9 @@ var (
 // Define a fallback function if you want to define some code to execute during outages.
 func Go(name string, run runFunc, fallback fallbackFunc) chan error {
 	cmd := &command{
-		run:          run,
-		fallback:     fallback,
-		start:        time.Now(),
+		run:          run,        // 正常执行的函数
+		fallback:     fallback,   // 熔断执行的函数
+		start:        time.Now(), // 开始时间
 		errChan:      make(chan error, 1),
 		finished:     make(chan bool, 1),
 		fallbackOnce: &sync.Once{},
@@ -76,6 +76,7 @@ func Go(name string, run runFunc, fallback fallbackFunc) chan error {
 	// let data come in and out naturally, like with any closure
 	// explicit error return to give place for us to kill switch the operation (fallback)
 
+	// 获取并设置circuit
 	circuit, _, err := GetCircuit(name)
 	if err != nil {
 		cmd.errChan <- err
@@ -83,12 +84,14 @@ func Go(name string, run runFunc, fallback fallbackFunc) chan error {
 	}
 	cmd.circuit = circuit
 
+	// 执行run，fallback
 	go func() {
+		// 结束写入chain
 		defer func() {
 			cmd.finished <- true
 		}()
 
-		//Forcefallback is true
+		//Forcefallback is true 强制fallback
 		if getSettings(name).ForceFallback {
 			cmd.errorWithFallback(ErrForceFallback)
 			return
@@ -97,6 +100,7 @@ func Go(name string, run runFunc, fallback fallbackFunc) chan error {
 		// Rejecting new executions allows backends to recover, and the circuit will allow
 		// new traffic when it feels a healthly state has returned.
 		if getSettings(name).CircuitBreakerEnabled {
+			// 是否触发熔断
 			if !cmd.circuit.AllowRequest() {
 				cmd.errorWithFallback(ErrCircuitOpen)
 				return
@@ -110,33 +114,36 @@ func Go(name string, run runFunc, fallback fallbackFunc) chan error {
 		// shed load which accumulates due to the increasing ratio of active commands to incoming requests.
 		cmd.Lock()
 		select {
-		case cmd.ticket = <-circuit.executorPool.Tickets:
+		case cmd.ticket = <-circuit.executorPool.Tickets: // 获取执行ticket
 			cmd.Unlock()
 		default:
 			cmd.Unlock()
-			cmd.errorWithFallback(ErrMaxConcurrency)
+			cmd.errorWithFallback(ErrMaxConcurrency) // 获取不到ticket就fallback
 			return
 		}
 
-		runStart := time.Now()
-		runErr := run()
+		runStart := time.Now() //正常逻辑开始执行时间
+		runErr := run()        // 执行正常逻辑
 
 		cmd.runDuration = time.Since(runStart)
 
+		// 正常逻辑异常 执行fallback
 		if runErr != nil {
 			cmd.errorWithFallback(runErr)
 			return
 		}
 
-		cmd.reportEvent("success")
+		cmd.reportEvent("success") // 执行成功
 	}()
 
+	// 执行完之后
 	go func() {
 		defer func() {
 			cmd.Lock()
-			cmd.circuit.executorPool.Return(cmd.ticket)
+			cmd.circuit.executorPool.Return(cmd.ticket) // 归还ticket
 			cmd.Unlock()
 
+			// 写入事件
 			err := cmd.circuit.ReportEvent(cmd.events, cmd.start, cmd.runDuration)
 			if err != nil {
 				openlog.Warn(fmt.Sprintf("can not report Metrics [%s]", err.Error()))
@@ -192,6 +199,7 @@ func Do(name string, run runFunc, fallback fallbackFunc) error {
 	}
 }
 
+// 填入events  fallback类型
 func (c *command) reportEvent(eventType string) {
 	c.Lock()
 	defer c.Unlock()
@@ -202,18 +210,19 @@ func (c *command) reportEvent(eventType string) {
 // errorWithFallback triggers the fallback while reporting the appropriate metric events.
 // If called multiple times for a single command, only the first will execute to insure
 // accurate Metrics and prevent the fallback from executing more than once.
+// 执行fallback
 func (c *command) errorWithFallback(err error) {
 	c.fallbackOnce.Do(func() {
-		eventType := "failure"
-		if err == ErrCircuitOpen {
+		eventType := "failure"     // 默认的异常 run执行失败
+		if err == ErrCircuitOpen { // 熔断
 			eventType = "short-circuit"
-		} else if err == ErrMaxConcurrency {
+		} else if err == ErrMaxConcurrency { // 超过并发
 			eventType = "rejected"
-		} else if err == ErrForceFallback {
+		} else if err == ErrForceFallback { // 强制fallback
 			eventType = "force fallback"
 		}
 
-		c.reportEvent(eventType)
+		c.reportEvent(eventType) // 记录fallback类型
 		fallbackErr := c.tryFallback(err)
 		if fallbackErr != nil {
 			c.errChan <- fallbackErr
@@ -221,6 +230,7 @@ func (c *command) errorWithFallback(err error) {
 	})
 }
 
+// 执行自定义的fallback函数
 func (c *command) tryFallback(err error) error {
 	if c.fallback == nil {
 

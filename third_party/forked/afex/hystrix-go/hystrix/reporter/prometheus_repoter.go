@@ -190,6 +190,8 @@ func ReportMetricsToPrometheus(cb *hystrix.CircuitBreaker) error {
 	gaugeVecFromNameAndValue(metricName, float64(runDuration.Percentile(99)), promLabels)
 	return nil
 }
+
+// 注册prometheus的监控
 func init() {
 	hystrix.InstallReporter("Prometheus", ReportMetricsToPrometheus)
 }

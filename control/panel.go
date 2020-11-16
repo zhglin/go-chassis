@@ -61,6 +61,7 @@ func Init(opts Options) error {
 //scope means has two choices, service and api
 //if you set it to api, a api level command string will be created. like "Consumer.mall.rest./test"
 //set to service, a service level command will be created, like "Consumer.mall"
+// hystrix不同的生效范围对应的key
 func NewCircuitName(serviceType, scope string, inv invocation.Invocation) string {
 	var cmd = serviceType
 	if inv.MicroServiceName != "" {

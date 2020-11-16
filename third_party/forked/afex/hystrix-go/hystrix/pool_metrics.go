@@ -6,6 +6,7 @@ import (
 	"github.com/go-chassis/go-chassis/v2/third_party/forked/afex/hystrix-go/hystrix/rolling"
 )
 
+// executorPool的计数器
 type poolMetrics struct {
 	Mutex   *sync.RWMutex
 	Updates chan poolMetricsUpdate
@@ -16,7 +17,7 @@ type poolMetrics struct {
 }
 
 type poolMetricsUpdate struct {
-	activeCount int
+	activeCount int // 当前剩余的ticket
 }
 
 func newPoolMetrics(name string) *poolMetrics {
@@ -27,11 +28,13 @@ func newPoolMetrics(name string) *poolMetrics {
 
 	m.Reset()
 
+	// 处理update事件
 	go m.Monitor()
 
 	return m
 }
 
+// 重置各个计数器
 func (m *poolMetrics) Reset() {
 	m.Mutex.Lock()
 	defer m.Mutex.Unlock()
@@ -40,6 +43,7 @@ func (m *poolMetrics) Reset() {
 	m.Executed = rolling.NewNumber()
 }
 
+// 处理chain事件
 func (m *poolMetrics) Monitor() {
 	for u := range m.Updates {
 		m.Mutex.RLock()

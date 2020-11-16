@@ -8,7 +8,7 @@ import (
 // Number tracks a numberBucket over a bounded number of
 // time buckets. Currently the buckets are one second long and only the last 10 seconds are kept.
 type Number struct {
-	Buckets map[int64]*numberBucket
+	Buckets map[int64]*numberBucket // key=>时间戳
 	Mutex   *sync.RWMutex
 }
 
@@ -25,11 +25,13 @@ func NewNumber() *Number {
 	return r
 }
 
+// 获取当前时间的bucket
 func (r *Number) getCurrentBucket() *numberBucket {
 	now := time.Now().Unix()
 	var bucket *numberBucket
 	var ok bool
 
+	// 不存在创建新的
 	if bucket, ok = r.Buckets[now]; !ok {
 		bucket = &numberBucket{}
 		r.Buckets[now] = bucket
@@ -38,6 +40,7 @@ func (r *Number) getCurrentBucket() *numberBucket {
 	return bucket
 }
 
+// 删除10s之前的buckets
 func (r *Number) removeOldBuckets() {
 	now := time.Now().Unix() - 10
 
@@ -50,6 +53,7 @@ func (r *Number) removeOldBuckets() {
 }
 
 // Increment increments the number in current timeBucket.
+// 增加
 func (r *Number) Increment(i float64) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
@@ -60,6 +64,7 @@ func (r *Number) Increment(i float64) {
 }
 
 // UpdateMax updates the maximum value in the current bucket.
+// 更新当前bucket中的值为最大值
 func (r *Number) UpdateMax(n float64) {
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
@@ -72,6 +77,7 @@ func (r *Number) UpdateMax(n float64) {
 }
 
 // Sum sums the values over the buckets in the last 10 seconds.
+// 获取最近10s的统计
 func (r *Number) Sum(now time.Time) float64 {
 	sum := float64(0)
 

@@ -7,6 +7,7 @@ require (
 	github.com/emicklei/go-restful v2.12.0+incompatible
 	github.com/go-chassis/foundation v0.1.1-0.20200825060850-b16bf420f7b3
 	github.com/go-chassis/go-archaius v1.3.6-0.20201103103813-43dd1680ebfb
+	github.com/go-chassis/go-chassis v0.0.0-20200716073336-4183d5dd1246
 	github.com/go-chassis/go-restful-swagger20 v1.0.3-0.20200310030431-17d80f34264f
 	github.com/go-chassis/openlog v1.1.2
 	github.com/go-chassis/seclog v1.3.0

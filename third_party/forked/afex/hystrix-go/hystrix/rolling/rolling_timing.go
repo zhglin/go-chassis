@@ -11,11 +11,11 @@ import (
 // The Durations are kept in an array to allow for a variety of
 // statistics to be calculated from the source data.
 type Timing struct {
-	Buckets map[int64]*timingBucket
+	Buckets map[int64]*timingBucket // key=>时间戳
 	Mutex   *sync.RWMutex
 
-	CachedSortedDurations []time.Duration
-	LastCachedTime        int64
+	CachedSortedDurations []time.Duration // 排序后的缓存 1s过期
+	LastCachedTime        int64           // cache设置时间
 }
 
 type timingBucket struct {
@@ -39,11 +39,13 @@ func (c byDuration) Less(i, j int) bool { return c[i] < c[j] }
 
 // SortedDurations returns an array of time.Duration sorted from shortest
 // to longest that have occurred in the last 60 seconds.
+// 对60s内的花费时长进行排序
 func (r *Timing) SortedDurations() []time.Duration {
 	r.Mutex.RLock()
 	t := r.LastCachedTime
 	r.Mutex.RUnlock()
 
+	// 距离上次排序未超过1s 直接使用cache
 	if t+time.Duration(1*time.Second).Nanoseconds() > time.Now().UnixNano() {
 		// don't recalculate if current cache is still fresh
 		return r.CachedSortedDurations
@@ -66,12 +68,14 @@ func (r *Timing) SortedDurations() []time.Duration {
 
 	sort.Sort(durations)
 
+	// 缓存排序结果
 	r.CachedSortedDurations = durations
 	r.LastCachedTime = time.Now().UnixNano()
 
 	return r.CachedSortedDurations
 }
 
+// 当前时间对应的bucket
 func (r *Timing) getCurrentBucket() *timingBucket {
 	r.Mutex.RLock()
 	now := time.Now()
@@ -89,6 +93,7 @@ func (r *Timing) getCurrentBucket() *timingBucket {
 	return bucket
 }
 
+// 删除60s之前的buckets
 func (r *Timing) removeOldBuckets() {
 	now := time.Now()
 
@@ -101,6 +106,7 @@ func (r *Timing) removeOldBuckets() {
 }
 
 // Add appends the time.Duration given to the current time bucket.
+// 在bucket中增加一个耗时
 func (r *Timing) Add(duration time.Duration) {
 	b := r.getCurrentBucket()
 
@@ -108,11 +114,12 @@ func (r *Timing) Add(duration time.Duration) {
 	defer r.Mutex.Unlock()
 
 	b.Durations = append(b.Durations, duration)
-	r.removeOldBuckets()
+	r.removeOldBuckets() // 清理过期buckets
 }
 
 // Percentile computes the percentile given with a linear interpolation.
 //it returns million seconds
+// 百分位p下的耗时
 func (r *Timing) Percentile(p float64) uint32 {
 	sortedDurations := r.SortedDurations()
 	length := len(sortedDurations)
@@ -133,6 +140,7 @@ func (r *Timing) ordinal(length int, percentile float64) int64 {
 }
 
 // Mean computes the average timing in the last 60 seconds.
+// 60s内的平均响应时间
 func (r *Timing) Mean() uint32 {
 	sortedDurations := r.SortedDurations()
 	var sum time.Duration
