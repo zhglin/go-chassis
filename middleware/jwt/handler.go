@@ -49,6 +49,8 @@ func (h *Handler) Handle(chain *handler.Chain, i *invocation.Invocation, cb invo
 		chain.Next(i, cb)
 		return
 	}
+
+	// http协议才会校验jwt
 	var req *http.Request
 	if r, ok := i.Args.(*http.Request); ok {
 		req = r
@@ -58,7 +60,10 @@ func (h *Handler) Handle(chain *handler.Chain, i *invocation.Invocation, cb invo
 		openlog.Error(fmt.Sprintf("this handler only works for http request, wrong type: %t", i.Args))
 		return
 	}
+
+	// 校验auth
 	if mustAuth(req) {
+		// header头
 		v := req.Header.Get(restfulserver.HeaderAuth)
 		if v == "" {
 			handler.WriteBackErr(ErrNoHeader, status.Status(i.Protocol, status.Unauthorized), cb)
@@ -89,12 +94,15 @@ func (h *Handler) Handle(chain *handler.Chain, i *invocation.Invocation, cb invo
 
 	chain.Next(i, cb)
 }
+
+// req是否需要进行auth认证
 func mustAuth(req *http.Request) bool {
 	if auth.MustAuth == nil {
 		return true
 	}
 	return auth.MustAuth(req)
 }
+
 func newHandler() handler.Handler {
 	return &Handler{}
 }
@@ -103,6 +111,8 @@ func newHandler() handler.Handler {
 func (h *Handler) Name() string {
 	return "jwt"
 }
+
+// 注册handler
 func init() {
 	err := handler.RegisterHandler("jwt", newHandler)
 	if err != nil {

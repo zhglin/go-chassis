@@ -125,6 +125,8 @@ func newHandler() handler.Handler {
 func (ph *Handler) Name() string {
 	return Name
 }
+
+// 注册handler
 func init() {
 	err := handler.RegisterHandler(Name, newHandler)
 	if err != nil {

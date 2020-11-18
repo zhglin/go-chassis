@@ -19,12 +19,13 @@ package token
 
 import (
 	"errors"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/go-chassis/go-chassis/v2/security/token/jwt-go"
 	"github.com/go-chassis/openlog"
 	"time"
 )
 
 //DefaultManager can be replaced
+// 默认的tokenManager
 var DefaultManager Manager = &jwtTokenManager{}
 
 //token pkg common errors
@@ -57,7 +58,9 @@ func Verify(tokenString string, f SecretFunc, opts ...Option) (map[string]interf
 
 //Manager manages token
 type Manager interface {
+	// 生成签名
 	Sign(claims map[string]interface{}, secret interface{}, option ...Option) (string, error)
+	// 签名校验
 	Verify(tokenString string, f SecretFunc, opts ...Option) (map[string]interface{}, error)
 }
 type jwtTokenManager struct {
@@ -101,6 +104,8 @@ func (j *jwtTokenManager) Verify(tokenString string, f SecretFunc, opts ...Optio
 	for _, opt := range opts {
 		opt(o)
 	}
+
+	// tokenString 解析成token 并校验签名
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		sm := HS256
 		if m, ok := token.Method.(*jwt.SigningMethodHMAC); ok {

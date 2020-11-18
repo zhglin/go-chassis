@@ -18,4 +18,4 @@
 package restful
 
 //HeaderAuth is const
-const HeaderAuth = "Authorization"
+const HeaderAuth = "Authorization" // jwt head头

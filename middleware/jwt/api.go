@@ -30,8 +30,8 @@ var auth *Auth
 //it is singleton
 type Auth struct {
 	SecretFunc token.SecretFunc //required
-	Expire     time.Duration
-	Realm      string //required
+	Expire     time.Duration    // 过期时间
+	Realm      string           //required
 
 	//optional. Authorize check whether this request could access some resource or API based on json claims.
 	//Typically, this method should communicate with a RBAC, ABAC system
@@ -40,11 +40,12 @@ type Auth struct {
 	//optional.
 	// this function control whether a request should be validate or not
 	// if this func is nil, validate all requests.
-	MustAuth func(req *http.Request) bool
+	MustAuth func(req *http.Request) bool // 是否auth的校验
 }
 
 //Use put a custom auth logic
 //then register handler to chassis
+// handler之前提前设置校验规则
 func Use(middleware *Auth) {
 	auth = middleware
 	if auth.Expire == 0 {
