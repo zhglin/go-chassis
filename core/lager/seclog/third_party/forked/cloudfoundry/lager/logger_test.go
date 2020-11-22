@@ -15,35 +15,23 @@
  * limitations under the License.
  */
 
-//Package basicauth supply basicAuth middleware abstraction
-package basicauth
+package lager_test
 
 import (
-	"github.com/go-chassis/go-chassis/v2/core/handler"
-	"github.com/go-chassis/openlog"
-	"net/http"
+	"github.com/go-chassis/seclog"
+	"github.com/go-chassis/seclog/third_party/forked/cloudfoundry/lager"
+	"testing"
 )
 
-var auth *BasicAuth
+func TestLogger_SetLogLevel(t *testing.T) {
+	seclog.Init(seclog.Config{
+		LoggerLevel:   "DEBUG",
+		LogFormatText: true,
+		Writers:       []string{"stdout"},
+	})
 
-//BasicAuth should implement basic auth server side logic
-//it is singleton
-type BasicAuth struct {
-	Realm string //required
-
-	// 校验账号密码
-	Authenticate func(user, pwd string) error //required
-	// 可选的授权校验
-	Authorize func(user string, req *http.Request) error //optional
-}
-
-//Use put a custom basic auth logic
-//then register handler to chassis
-// 上游设置basicAuth
-func Use(middleware *BasicAuth) {
-	auth = middleware
-	err := handler.RegisterHandler("basicAuth", newBasicAuth)
-	if err != nil {
-		openlog.Error(err.Error())
-	}
+	l := seclog.NewLogger("demo")
+	l.Warn("1")
+	l.SetLogLevel(lager.ERROR)
+	l.Warn("1")
 }

@@ -40,11 +40,12 @@ const (
 	Router = "router.yaml"
 )
 
-var configDir string
+var configDir string // 配置目录
 var homeDir string
 var once sync.Once
 
 //GetWorkDir is a function used to get the working directory
+// 获取程序所在目录
 func GetWorkDir() (string, error) {
 	wd, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
@@ -53,6 +54,7 @@ func GetWorkDir() (string, error) {
 	return wd, nil
 }
 
+// 初始化相关目录
 func initDir() {
 	if h := os.Getenv(ChassisHome); h != "" {
 		homeDir = h

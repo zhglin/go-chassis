@@ -22,12 +22,13 @@ var (
 		record: restfulRecord,
 	}
 
-	log openlog.Logger
+	log openlog.Logger // log实例
 )
 
 const handlerNameAccessLog = "access-log"
 
 func init() {
+	// log配置不存在
 	if initiator.LoggerOptions == nil || len(initiator.LoggerOptions.AccessLogFile) == 0 {
 		openlog.Info("lager.yaml non exist, skip init")
 		return
@@ -36,6 +37,7 @@ func init() {
 	if initiator.LoggerOptions.AccessLogFile == lager.Stdout {
 		log = openlog.GetLogger()
 	} else {
+		// 创建新的loger
 		var err error
 		opts := &lager.Options{
 			Writers:        lager.File,
@@ -67,10 +69,10 @@ func Use(record Record) {
 }
 
 type accessLog struct {
-	record func(time.Time, *invocation.Invocation)
+	record func(time.Time, *invocation.Invocation) // 写入记录
 }
 
-// Handle ...
+// Handle ... 请求日志handler
 func (a *accessLog) Handle(chain *handler.Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
 	now := time.Now()
 	chain.Next(i, func(response *invocation.Response) {

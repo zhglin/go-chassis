@@ -34,12 +34,12 @@ var logFilePath string
 
 //Options is the struct for lager information(lager.yaml)
 type Options struct {
-	Writers       string `yaml:"logWriters"`
-	LoggerLevel   string `yaml:"logLevel"`
-	LoggerFile    string `yaml:"logFile"`
+	Writers       string `yaml:"logWriters"` // 写入目的地
+	LoggerLevel   string `yaml:"logLevel"`   // log级别
+	LoggerFile    string `yaml:"logFile"`    // log文件
 	LogFormatText bool   `yaml:"logFormatText"`
 
-	LogRotateDisable  bool `yaml:"logRotateDisable"`
+	LogRotateDisable  bool `yaml:"logRotateDisable"` // 是否开启日志轮转
 	LogRotateCompress bool `yaml:"logRotateCompress"`
 	LogRotateAge      int  `yaml:"logRotateAge"`
 	LogRotateSize     int  `yaml:"logRotateSize"`
@@ -52,6 +52,7 @@ type Options struct {
 func Init(option *Options) {
 	var err error
 	logger, err := NewLog(option)
+	// log文件打开失败
 	if err != nil {
 		panic(err)
 	}
@@ -60,13 +61,16 @@ func Init(option *Options) {
 }
 
 // NewLog returns a logger
+// 创建log
 func NewLog(option *Options) (lager.Logger, error) {
 	checkPassLagerDefinition(option)
 
 	localPath := ""
-	if !filepath.IsAbs(option.LoggerFile) {
+	if !filepath.IsAbs(option.LoggerFile) { // 不是绝对路径
 		localPath = os.Getenv("CHASSIS_HOME")
 	}
+
+	// 创建log文件
 	err := createLogFile(localPath, option.LoggerFile)
 	if err != nil {
 		return nil, err
@@ -74,10 +78,10 @@ func NewLog(option *Options) (lager.Logger, error) {
 
 	logFilePath = filepath.Join(localPath, option.LoggerFile)
 
+	// 日志写入的目的地
 	writers := strings.Split(strings.TrimSpace(option.Writers), ",")
 
 	option.LoggerFile = logFilePath
-
 	seclog.Init(seclog.Config{
 		LoggerLevel:   option.LoggerLevel,
 		LogFormatText: option.LogFormatText,
@@ -94,6 +98,7 @@ func NewLog(option *Options) (lager.Logger, error) {
 }
 
 // checkPassLagerDefinition check pass lager definition
+// 校验log配置
 func checkPassLagerDefinition(option *Options) {
 	if option.LoggerLevel == "" {
 		option.LoggerLevel = "DEBUG"
@@ -120,8 +125,10 @@ func checkPassLagerDefinition(option *Options) {
 }
 
 // createLogFile create log file
+// 创建log文件
 func createLogFile(localPath, out string) error {
 	_, err := os.Stat(strings.Replace(filepath.Dir(filepath.Join(localPath, out)), "\\", "/", -1))
+	// 文件不存在 创建目录
 	if err != nil && os.IsNotExist(err) {
 		err := os.MkdirAll(strings.Replace(filepath.Dir(filepath.Join(localPath, out)), "\\", "/", -1), os.ModePerm)
 		if err != nil {
@@ -130,6 +137,7 @@ func createLogFile(localPath, out string) error {
 	} else if err != nil {
 		return err
 	}
+	// 尝试打开一次
 	f, err := os.OpenFile(strings.Replace(filepath.Join(localPath, out), "\\", "/", -1), os.O_CREATE, 0600)
 	if err != nil {
 		return err

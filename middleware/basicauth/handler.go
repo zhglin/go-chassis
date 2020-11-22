@@ -46,6 +46,7 @@ type Handler struct {
 
 // Handle pre process raw data in handler
 func (ph *Handler) Handle(chain *handler.Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 非http协议
 	var req *http.Request
 	if r, ok := i.Args.(*http.Request); ok {
 		req = r
@@ -55,22 +56,30 @@ func (ph *Handler) Handle(chain *handler.Chain, i *invocation.Invocation, cb inv
 		openlog.Error(fmt.Sprintf("this handler only works for http protocol, wrong type: %t", i.Args))
 		return
 	}
+
+	// header头
 	subject := req.Header.Get(HeaderAuth)
 	if subject == "" {
 		handler.WriteBackErr(ErrNoHeader, status.Status(i.Protocol, status.Unauthorized), cb)
 		return
 	}
+
+	// 解析账号密码
 	u, p, err := decode(subject)
 	if err != nil {
 		openlog.Error("can not decode base 64:" + err.Error())
 		handler.WriteBackErr(ErrNoHeader, status.Status(i.Protocol, status.Unauthorized), cb)
 		return
 	}
+
+	// 账号密码校验
 	err = auth.Authenticate(u, p)
 	if err != nil {
 		handler.WriteBackErr(ErrNoHeader, status.Status(i.Protocol, status.Unauthorized), cb)
 		return
 	}
+
+	// 授权校验
 	if auth.Authorize != nil {
 		err = auth.Authorize(u, req)
 		if err != nil {
@@ -81,6 +90,7 @@ func (ph *Handler) Handle(chain *handler.Chain, i *invocation.Invocation, cb inv
 	chain.Next(i, cb)
 }
 
+// 基本认证
 func newBasicAuth() handler.Handler {
 	return &Handler{}
 }
@@ -89,6 +99,8 @@ func newBasicAuth() handler.Handler {
 func (ph *Handler) Name() string {
 	return "basicAuth"
 }
+
+// base64解析账号 密码
 func decode(subject string) (user string, pwd string, err error) {
 	parts := strings.Split(subject, " ")
 	if len(parts) != 2 {

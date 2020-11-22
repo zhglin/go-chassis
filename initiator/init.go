@@ -22,7 +22,9 @@ func init() {
 }
 
 // InitLogger initiate config file and openlog before other modules
+// 初始化log
 func InitLogger() {
+	// 获取log配置
 	err := ParseLoggerConfig(fileutil.LogConfigPath())
 	//initialize log in any case
 	if err != nil {
@@ -30,6 +32,7 @@ func InitLogger() {
 			LoggerLevel: lager.LevelDebug,
 			Writers:     lager.Stdout,
 		})
+		// 配置文件不存在
 		if os.IsNotExist(err) {
 			openlog.Info(fmt.Sprintf("[%s] not exist", fileutil.LogConfigPath()))
 		} else {
@@ -41,6 +44,7 @@ func InitLogger() {
 }
 
 // ParseLoggerConfig unmarshals the logger configuration file(lager.yaml)
+// 解析loger配置文件
 func ParseLoggerConfig(file string) error {
 	LoggerOptions = &lager.Options{}
 	err := unmarshalYamlFile(file, LoggerOptions)
@@ -50,6 +54,7 @@ func ParseLoggerConfig(file string) error {
 	return err
 }
 
+// 读取解析yaml文件
 func unmarshalYamlFile(file string, target interface{}) error {
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
