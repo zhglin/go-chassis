@@ -22,8 +22,7 @@ type InvokeOptions struct {
 	DialTimeout time.Duration
 	// Request/Response timeout
 	RequestTimeout time.Duration
-	// end to end, Directly call
-	Endpoint string
+	DisableSD      bool
 	// end to end, Directly call
 	Protocol string // 协议 rest
 	Port     string // 端口号
@@ -83,10 +82,12 @@ func StreamingRequest() InvocationOption {
 	}
 }
 
-// WithEndpoint is request option
-func WithEndpoint(ep string) InvocationOption {
+// WithoutSD will skip client-side load balancing phase.
+// it means, go chassis can work without service discovery(ike consul, etcd, eureka,kubernetes).
+// use this API, when you don't want to make your micro service depend on a centralized service.
+func WithoutSD() InvocationOption {
 	return func(o *InvokeOptions) {
-		o.Endpoint = ep
+		o.DisableSD = true
 	}
 }
 
@@ -127,7 +128,7 @@ func WithRouteTags(t map[string]string) InvocationOption {
 }
 
 // getOpts is to get the options
-func getOpts(microservice string, options ...InvocationOption) InvokeOptions {
+func getOpts(options ...InvocationOption) InvokeOptions {
 	opts := InvokeOptions{}
 	for _, o := range options {
 		o(&opts)
@@ -135,13 +136,20 @@ func getOpts(microservice string, options ...InvocationOption) InvokeOptions {
 	return opts
 }
 
-// wrapInvocationWithOpts is wrap invocation with options
+// wrapInvocationWithOpts wrap invocation with options
 func wrapInvocationWithOpts(i *invocation.Invocation, opts InvokeOptions) {
-	i.Endpoint = opts.Endpoint
+	if opts.DisableSD { // client side load balancing handler will not work
+		if opts.Port != "" {
+			i.Endpoint = i.MicroServiceName + ":" + opts.Port
+		} else {
+			i.Endpoint = i.MicroServiceName
+		}
+	}
+
 	i.Protocol = opts.Protocol
 	i.Strategy = opts.StrategyFunc
 	i.Filters = opts.Filters
-	i.Port = opts.Port
+	i.PortName = opts.Port
 	if opts.Metadata != nil {
 		i.Metadata = opts.Metadata
 	}

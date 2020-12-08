@@ -31,7 +31,7 @@ type ServiceComb struct {
 	Credentials        CredentialStruct    `yaml:"credentials"`
 	Transport          Transport           `yaml:"transport"` // 服务器端限制协议的一些限制
 	NoRefreshSchema    bool                `yaml:"noRefreshSchema"`
-	DB                 storage.DB          `yaml:"db"`
+	Options            storage.Options     `yaml:"options"`
 }
 
 //Transport defines failure

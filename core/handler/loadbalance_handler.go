@@ -70,7 +70,7 @@ func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.Load
 
 	// 判断ins是否支持protocol
 	// ins.EndpointsMap是已protocol为key 这里的port有问题
-	protocolServer := util.GenProtoEndPoint(i.Protocol, i.Port)
+	protocolServer := util.GenProtoEndPoint(i.Protocol, i.PortName)
 	ep, ok := ins.EndpointsMap[protocolServer]
 	if !ok {
 		errStr := fmt.Sprintf(
@@ -85,6 +85,12 @@ func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.Load
 
 // Handle to handle the load balancing
 func (lb *LBHandler) Handle(chain *Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 指定endpoint 跳过balance
+	if i.Endpoint != "" {
+		chain.Next(i, cb)
+		return
+	}
+
 	// 获取balance配置
 	lbConfig := control.DefaultPanel.GetLoadBalancing(*i)
 	if !lbConfig.RetryEnabled {

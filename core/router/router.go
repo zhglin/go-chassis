@@ -62,8 +62,8 @@ func BuildRouter(name string) error {
 func Route(header map[string]string, si *registry.SourceInfo, inv *invocation.Invocation) error {
 	rules := SortRules(inv.MicroServiceName) // 获取配置
 	for _, rule := range rules {
-		if Match(inv, rule.Match, header, si) { // 每条规则进行匹配
-			tag := FitRate(rule.Routes, inv.MicroServiceName)
+		if Match(inv, rule.Match, header, si) {
+			tag := FitRate(rule.Routes, GenWeightPoolKey(inv.MicroServiceName, rule.Precedence)) // 每条规则进行匹配
 			// inv里面设置routeTag
 			inv.RouteTags = routeTagToTags(tag)
 			break
@@ -81,9 +81,8 @@ func FitRate(tags []*config.RouteTag, dest string) *config.RouteTag {
 
 	pool, ok := wp.GetPool().Get(dest)
 	if !ok {
-		// first request route to tags[0]  首次直接返回第一个
-		wp.GetPool().Set(dest, wp.NewPool(tags...))
-		return tags[0]
+		pool = wp.NewPool(tags...)
+		wp.GetPool().Set(dest, pool)
 	}
 	return pool.PickOne()
 }

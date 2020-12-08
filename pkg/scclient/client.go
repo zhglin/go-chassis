@@ -99,7 +99,6 @@ func (c *RegistryClient) Initialize(opt Options) (err error) {
 	}
 
 	options := &httpclient.Options{
-		SSLEnabled: opt.EnableSSL,
 		TLSConfig:  opt.TLSConfig,
 		Compressed: opt.Compressed,
 	}
