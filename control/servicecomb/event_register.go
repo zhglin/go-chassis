@@ -15,14 +15,15 @@ func RegisterKeys(eventListener event.Listener, keys ...string) {
 }
 
 //Init is a function
+// 监听配置项变更
 func Init() {
-	qpsEventListener := &QPSEventListener{}
-	circuitBreakerEventListener := &CircuitBreakerEventListener{}
-	lbEventListener := &LoadBalancingEventListener{}
+	qpsEventListener := &QPSEventListener{}                       // 限流
+	circuitBreakerEventListener := &CircuitBreakerEventListener{} // 熔断
+	lbEventListener := &LoadBalancingEventListener{}              // 负载均衡
 
 	RegisterKeys(qpsEventListener, Prefix)
 	RegisterKeys(circuitBreakerEventListener, ConsumerFallbackKey, ConsumerFallbackPolicyKey, ConsumerIsolationKey, ConsumerCircuitBreakerKey)
 	RegisterKeys(lbEventListener, LoadBalanceKey)
-	RegisterKeys(&LagerEventListener{}, LagerLevelKey)
+	RegisterKeys(&LagerEventListener{}, LagerLevelKey) // 记录日志的最小级别
 
 }

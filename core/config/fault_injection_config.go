@@ -14,6 +14,20 @@ const (
 	DefaultDelayPercent = 0
 )
 
+/*
+servicecomb:
+  governance:
+    Consumer:
+      service1:
+        policy:
+          fault:
+            protocols:
+              rest:
+                abort:
+                  httpStatus: 500
+                  percent: 100
+*/
+
 // GetAbortPercent get abort percentage
 func GetAbortPercent(protocol, microServiceName, schema, operation string) int {
 

@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"fmt"
-
 	"github.com/go-chassis/go-chassis/v2/core/invocation"
 	"github.com/go-chassis/go-chassis/v2/pkg/string"
 )
@@ -39,13 +38,25 @@ const (
 // 初始化 设置所有handler对应的创建函数
 func init() {
 	//register build-in handler,don't need to call RegisterHandlerFunc
-	HandlerFuncMap[Transport] = newTransportHandler
-	HandlerFuncMap[Loadbalance] = newLBHandler                  // 负载军黑
+
+	//handler.RegisterHandler(handlerNameAccessLog, )
+	//handler.RegisterHandler(Consumer, newConsumerRateLimiterHandler)
+	HandlerFuncMap[TrafficMarker] = newMarkHandler // 流量打标
+	//handler.RegisterHandler(Name, newRateLimiterHandler)		// 流量打标的限流 会依赖trafficMarker
+	HandlerFuncMap[Router] = newRouterHandler  // 路由 // 会依赖trafficMarker
+	HandlerFuncMap[Loadbalance] = newLBHandler // 负载均衡
+	//handler.RegisterHandler(Name, newBizKeeperConsumerHandler)
+	HandlerFuncMap[Transport] = newTransportHandler // 请求执行
+
 	HandlerFuncMap[TracingProvider] = newTracingProviderHandler // 服务器端追踪
 	HandlerFuncMap[TracingConsumer] = newTracingConsumerHandler // 客户端追踪
-	HandlerFuncMap[Router] = newRouterHandler                   // 路由
 	HandlerFuncMap[FaultInject] = newFaultHandler               // 故障注入
-	HandlerFuncMap[TrafficMarker] = newMarkHandler              // 流量打标
+
+	//handler.RegisterHandler(Name, newHandler) // monitoring
+	//handler.RegisterHandler("jwt", newHandler)
+	//handler.RegisterHandler("bizkeeper-provider", newBizKeeperProviderHandler)
+	//handler.RegisterHandler(Provider, newProviderRateLimiterHandler)
+	//handler.RegisterHandler("basicAuth", newBasicAuth)
 }
 
 // Handler interface for handlers
@@ -57,6 +68,7 @@ type Handler interface {
 }
 
 //WriteBackErr write err and callback
+// 失败的handler 这只response 执行回调
 func WriteBackErr(err error, status int, cb invocation.ResponseCallBack) {
 	r := &invocation.Response{
 		Err:    err,

@@ -41,8 +41,8 @@ func ProcessMatch(key string, value string) error {
 
 type LimiterPolicy struct {
 	MatchPolicyName string `yaml:"match"` // 匹配到的流量标记名
-	Rate            int    `yaml:"rate"`
-	Burst           int    `yaml:"burst"`
+	Rate            int    `yaml:"rate"`  // 速率
+	Burst           int    `yaml:"burst"` //
 }
 
 //ProcessLimiter saves limiter, after a invocation is marked,

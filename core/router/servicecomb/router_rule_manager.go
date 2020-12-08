@@ -18,6 +18,34 @@ const (
 	DarkLaunchTypeRate = "RATE"
 )
 
+/*
+servicecomb:
+    routeRule:
+      {targetServiceName}: |# 服务名
+        - precedence: {number} #优先级
+          match:        #匹配策略
+            source: {sourceServiceName} #匹配某个服务名
+            headers:          #header匹配
+              {key0}:
+                regex: {regex}
+                caseInsensitive: false # 是否区分大小写，默认为false，区分大小写
+              {key1}
+                exact: {=？}
+          route: #路由规则
+            - weight: {percent} #权重值
+              tags:
+                version: {version1}
+                app: {appId}
+        - precedence: {number1}
+          match:
+            refer: {matchPolicy} #参考某个match policy
+          route:
+            - weight: {percent}
+              tags:
+                version: {version2}
+                app: {appId}
+*/
+
 //MergeLocalAndRemoteConfig get router config from archaius,
 //including local file,memory and config server
 // 从配置中心获取rule配置
@@ -26,6 +54,7 @@ func MergeLocalAndRemoteConfig() (map[string][]*config.RouteRule, error) {
 	//then get config from archaius and simply overwrite rule from file
 	ruleV1Map := make(map[string]interface{})
 	ruleV2Map := make(map[string]interface{})
+	// 配置中心获取所有配置
 	configMap := archaius.GetConfigs()
 	//filter out key:value pairs which are not route rules
 	prepareRule(configMap, ruleV1Map, ruleV2Map)
@@ -75,7 +104,7 @@ func processV1Rule(ruleV1Map map[string]interface{}, destinations map[string][]*
 	return nil, nil
 }
 
-// 处理从配置中心读取的router配置
+// 从配置中心过滤出来router配置
 func prepareRule(configMap map[string]interface{}, ruleV1Map map[string]interface{}, ruleV2Map map[string]interface{}) {
 	for k, v := range configMap {
 		if strings.HasPrefix(k, DarkLaunchPrefix) {

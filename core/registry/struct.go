@@ -44,8 +44,8 @@ type MicroServiceInstance struct {
 	DefaultProtocol string               `json:"defaultProtocol"` // 默认的protocol
 	DefaultEndpoint string               `json:"defaultEndpoint"` // 默认的address
 	Status          string               `json:"status"`
-	EndpointsMap    map[string]*Endpoint `json:"endpointsMap"` // key = proto + "-" + port
-	Metadata        map[string]string    `json:"metadata"`     // key [version=>1.2.3， app=>appId]
+	EndpointsMap    map[string]*Endpoint `json:"endpointsMap"` // key = proto(协议名称)
+	Metadata        map[string]string    `json:"metadata"`     // 根据Invocation的tag进行实例筛选 key [version=>1.2.3， app=>appId]
 	DataCenterInfo  *DataCenterInfo      `json:"dataCenterInfo"`
 }
 

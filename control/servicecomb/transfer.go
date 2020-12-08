@@ -18,6 +18,7 @@ import (
 )
 
 //SaveToLBCache save configs
+// 设置loadBalance配置的cache
 func SaveToLBCache(raw *model.LoadBalancing) {
 	openlog.Debug("Loading lb config from archaius into cache")
 	oldKeys := LBConfigCache.Items()
@@ -26,7 +27,7 @@ func SaveToLBCache(raw *model.LoadBalancing) {
 	if raw != nil {
 		newKeys = reloadLBCache(raw)
 	}
-	// remove outdated keys  删除已经不存在的key
+	// remove outdated keys  删除已经不存在的cache key
 	for old := range oldKeys {
 		if _, ok := newKeys[old]; !ok {
 			LBConfigCache.Delete(old)
@@ -35,7 +36,7 @@ func SaveToLBCache(raw *model.LoadBalancing) {
 
 }
 
-// 所有service默认的LB配置
+// 所有service默认的LB配置 返回对应的cache key
 func saveDefaultLB(raw *model.LoadBalancing) string { // return updated key
 	c := control.LoadBalancingConfig{
 		Strategy:                raw.Strategy["name"],
@@ -53,6 +54,8 @@ func saveDefaultLB(raw *model.LoadBalancing) string { // return updated key
 	LBConfigCache.Set("", c, 0)
 	return ""
 }
+
+// 设置每个依赖服务的balance配置 cache key=服务名
 func saveEachLB(k string, raw model.LoadBalancingSpec) string { // return updated key
 	c := control.LoadBalancingConfig{
 		Strategy:                raw.Strategy["name"],
@@ -71,6 +74,7 @@ func saveEachLB(k string, raw model.LoadBalancingSpec) string { // return update
 	return k
 }
 
+// 设置默认的 负载均衡算法 重试策略
 func setDefaultLBValue(c *control.LoadBalancingConfig) {
 	if c.Strategy == "" {
 		c.Strategy = loadbalancer.StrategyRoundRobin
@@ -156,7 +160,7 @@ func GetCBCacheKey(serviceName, serviceType string) string {
 	return key
 }
 
-// 刷新Balance的cache
+// 更新src最新的配置 进行cache的更新
 func reloadLBCache(src *model.LoadBalancing) map[string]bool { //return updated keys
 	keys := make(map[string]bool)
 	k := saveDefaultLB(src) // 全局统一的配置
@@ -164,7 +168,7 @@ func reloadLBCache(src *model.LoadBalancing) map[string]bool { //return updated 
 	if src.AnyService == nil {
 		return keys
 	}
-	// 不同于全局的
+	// 每个service独立的配置
 	for name, conf := range src.AnyService {
 		k = saveEachLB(name, conf)
 		keys[k] = true

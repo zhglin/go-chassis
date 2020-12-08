@@ -76,7 +76,7 @@ func enableServiceDiscovery(opts Options) error {
 		return err
 	}
 
-	// 同步cache
+	// 同步刷新依赖service的instance cache
 	DefaultServiceDiscoveryService.AutoSync()
 
 	openlog.Info(fmt.Sprintf("enable %s service discovery.", t))

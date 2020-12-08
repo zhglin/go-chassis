@@ -42,6 +42,7 @@ var labels4Resp = []string{"service", "instance", "version", "app", "env", "code
 var labelMap map[string]string
 
 //Handler monitor server side metrics, the key metrics is latency, QPS, Errors, do not use it in consumer chain
+// 处理程序监控服务器端指标，关键指标是延迟、QPS、错误，不要在消费者链中使用它
 type Handler struct {
 }
 
@@ -67,7 +68,7 @@ func (ph *Handler) Handle(chain *handler.Chain, i *invocation.Invocation, cb inv
 	chain.Next(i, func(resp *invocation.Response) {
 		if resp.Status >= status.Status(i.Protocol, status.InternalServerError) {
 			m := map[string]string{
-				"service":  runtime.ServiceName,
+				"service":  runtime.ServiceName, // provider
 				"instance": runtime.InstanceID,
 				"version":  runtime.Version,
 				"app":      runtime.App,

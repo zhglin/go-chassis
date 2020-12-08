@@ -40,12 +40,12 @@ func (m *MarkHandler) Name() string {
 
 //Handle to handle the mart invocation
 func (m *MarkHandler) Handle(chain *Chain, inv *invocation.Invocation, cb invocation.ResponseCallBack) {
-	// 全链路的标记
+	// 设置流量标记 参与路由
 	markInHeader := inv.Header(common.HeaderMark)
 	if markInHeader != "" {
-		inv.Mark(markInHeader)
+		inv.Mark(markInHeader) // 设置了全链路的,设置到此请求上
 	} else {
-		marker.Mark(inv)
+		marker.Mark(inv) // 未设置就进行匹配
 	}
 
 	chain.Next(inv, cb)

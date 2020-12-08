@@ -62,12 +62,12 @@ func readFromArchaius() error {
 	if err != nil {
 		return err
 	}
-	err = ReadLBFromArchaius()
+	err = ReadLBFromArchaius() // 加载loadbalance配置
 	if err != nil {
 		return err
 	}
 
-	err = ReadHystrixFromArchaius()
+	err = ReadHystrixFromArchaius() // 全量的熔断配置
 	if err != nil {
 		return err
 	}
@@ -191,6 +191,7 @@ func ReadHystrixFromArchaius() error {
 }
 
 //GetLoadBalancing return lb config
+//readFromArchaius函数中加载出来的配置
 func GetLoadBalancing() *model.LoadBalancing {
 	if lbConfig != nil {
 		return &lbConfig.Prefix.LBConfig
@@ -208,6 +209,7 @@ func GetHystrixConfig() *model.HystrixConfig {
 }
 
 // Init is initialize the configuration directory, archaius, route rule, and schema
+// 加载配置
 func Init() error {
 	err := InitArchaius()
 	if err != nil {

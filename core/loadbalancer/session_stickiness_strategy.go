@@ -36,6 +36,7 @@ func ResetSuccessiveFailureMap() {
 }
 
 //IncreaseSuccessiveFailureCount increase failure count
+// 计数
 func IncreaseSuccessiveFailureCount(cookieValue string) {
 	successiveFailureCountMutex.Lock()
 	c, ok := successiveFailureCount[cookieValue]
@@ -49,6 +50,7 @@ func IncreaseSuccessiveFailureCount(cookieValue string) {
 }
 
 //GetSuccessiveFailureCount get failure count
+// 获取指定sessionId请求的失败次数
 func GetSuccessiveFailureCount(cookieValue string) int {
 	successiveFailureCountMutex.RLock()
 	defer successiveFailureCountMutex.RUnlock()
@@ -70,8 +72,10 @@ func newSessionStickinessStrategy() Strategy {
 // ReceiveData receive data
 func (r *SessionStickinessStrategy) ReceiveData(inv *invocation.Invocation, instances []*registry.MicroServiceInstance, serviceName string) {
 	r.instances = instances
-	r.sessionID = session.GetSessionID(getNamespace(inv))
+	r.sessionID = session.GetSessionID(getNamespace(inv)) // 当前调用的sessionId
 }
+
+// 获取当前invocation的session命名空间  namespace只是区分不同invocation
 func getNamespace(i *invocation.Invocation) string {
 	if metadata, ok := i.Metadata[common.SessionNameSpaceKey]; ok {
 		if v, ok := metadata.(string); ok {
@@ -82,13 +86,16 @@ func getNamespace(i *invocation.Invocation) string {
 }
 
 // Pick return instance
+// 选择实例
 func (r *SessionStickinessStrategy) Pick() (*registry.MicroServiceInstance, error) {
-	instanceAddr, ok := session.Get(r.sessionID)
+	instanceAddr, ok := session.Get(r.sessionID) // 根据sessionId获取address
 	if ok {
+		// 没有可用节点
 		if len(r.instances) == 0 {
 			return nil, ErrNoneAvailableInstance
 		}
 
+		// sessionId对应的address是否在instance实例中 这里的比较貌似有问题 todo
 		for _, instance := range r.instances {
 			if instanceAddr == instance.EndpointsMap[instance.DefaultProtocol] {
 				return instance, nil
@@ -96,13 +103,14 @@ func (r *SessionStickinessStrategy) Pick() (*registry.MicroServiceInstance, erro
 		}
 		// if micro service instance goes down then related entry in endpoint map will be deleted,
 		//so instead of sending nil, a new instance can be selected using round robin
+		// 如果记录的address已经不存在 就轮询选个
 		return r.pick()
 	}
 	return r.pick()
 
 }
 
-// 随机选个
+// 轮询选一个
 func (r *SessionStickinessStrategy) pick() (*registry.MicroServiceInstance, error) {
 	if len(r.instances) == 0 {
 		return nil, ErrNoneAvailableInstance

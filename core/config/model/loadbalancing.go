@@ -1,5 +1,30 @@
 package model
 
+/*
+cse:
+  loadbalance:
+    TargetService:
+      backoff:
+        maxMs: 400
+        minMs: 200
+        kind: constant
+      retryEnabled: false
+      retryOnNext: 2
+      retryOnSame: 3
+      serverListFilters: zoneaware
+      strategy:
+        name: WeightedResponse
+    backoff:
+      maxMs: 400
+      minMs: 200
+      kind: constant
+    retryEnabled: false
+    retryOnNext: 2
+    retryOnSame: 3
+    serverListFilters: zoneaware
+    strategy:
+      name: WeightedResponse
+*/
 // LBWrapper loadbalancing structure
 type LBWrapper struct {
 	Prefix LoadBalancingConfig `yaml:"cse"`
@@ -19,7 +44,7 @@ type LoadBalancing struct {
 	Filters               string                       `yaml:"serverListFilters"`
 	Backoff               BackoffStrategy              `yaml:"backoff"`
 	SessionStickinessRule SessionStickinessRule        `yaml:"SessionStickinessRule"`
-	AnyService            map[string]LoadBalancingSpec `yaml:",inline"`
+	AnyService            map[string]LoadBalancingSpec `yaml:",inline"` // 针对不同的service的配置
 }
 
 // LoadBalancingSpec loadbalancing structure
@@ -34,8 +59,8 @@ type LoadBalancingSpec struct {
 
 // SessionStickinessRule loadbalancing structure
 type SessionStickinessRule struct {
-	SessionTimeoutInSeconds int `yaml:"sessionTimeoutInSeconds"`
-	SuccessiveFailedTimes   int `yaml:"successiveFailedTimes"`
+	SessionTimeoutInSeconds int `yaml:"sessionTimeoutInSeconds"` // 会话过期时间
+	SuccessiveFailedTimes   int `yaml:"successiveFailedTimes"`   //请求失败次数达到了就直接切换节点
 }
 
 // BackoffStrategy back off strategy

@@ -55,7 +55,7 @@ type Registrator interface {
 	AddSchemas(microServiceID, schemaName, schemaInfo string) error
 }
 
-// 开启服务注册
+// 开启服务注册 只是注册服务
 func enableRegistrator(opts Options) error {
 	if config.GetRegistratorDisable() {
 		return nil
@@ -90,6 +90,7 @@ func InstallRegistrator(name string, f func(opts Options) Registrator) {
 }
 
 //NewRegistrator return registrator
+// 创建指定的注册中心
 func NewRegistrator(name string, opts Options) (Registrator, error) {
 	f := registryFunc[name]
 	if f == nil {
@@ -100,7 +101,7 @@ func NewRegistrator(name string, opts Options) (Registrator, error) {
 
 // 获取注册中心配置
 func getSpecifiedOptions() (oR, oSD, oCD Options, err error) {
-	// 注册
+	// 注册中心链接地址
 	hostsR, schemeR, err := URIs2Hosts(strings.Split(config.GetRegistratorAddress(), ","))
 	if err != nil {
 		return
@@ -115,7 +116,7 @@ func getSpecifiedOptions() (oR, oSD, oCD Options, err error) {
 		oR.EnableSSL = true
 	}
 
-	// 发现
+	// 服务发现的链接地址
 	hostsSD, schemeSD, err := URIs2Hosts(strings.Split(config.GetServiceDiscoveryAddress(), ","))
 	if err != nil {
 		return

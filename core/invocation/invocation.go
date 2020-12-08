@@ -30,24 +30,24 @@ type ResponseCallBack func(*Response)
 //developer should implements a client which is able to transfer invocation to there own request
 //a protocol server should transfer request to invocation and then back to request
 type Invocation struct {
-	HandlerIndex       int // 执行的handler序号
-	SSLEnable          bool
-	Endpoint           string //service's ip and port, it is decided in load balancing
-	Protocol           string // 协议 rest ||
-	Port               string //Port is the name of a real service port (端口号 url里解析出来的端口号)
-	SourceServiceID    string // 当前service的serviceId
-	SourceMicroService string
+	HandlerIndex       int                    // 执行的handler序号
+	SSLEnable          bool                   // 是否开启ssl
+	Endpoint           string                 //service's ip and port, it is decided in load balancing 请求地址
+	Protocol           string                 // 协议标识名 rest ||
+	Port               string                 //Port is the name of a real service port (端口号 url里解析出来的端口号)
+	SourceServiceID    string                 // 当前service的serviceId
+	SourceMicroService string                 // 来源的service
 	MicroServiceName   string                 //Target micro service name  当前依赖的服务名称 目标服务名
 	SchemaID           string                 //correspond struct name
 	OperationID        string                 //correspond struct func name  // request url path
 	Args               interface{}            // 请求 http request
 	URLPathFormat      string                 // url path
 	Reply              interface{}            // 响应 http response 创建Invocation时就创建了Reply
-	Ctx                context.Context        //ctx can save protocol headers  存储协议headers
+	Ctx                context.Context        //ctx can save protocol headers  存储协议headers 请求调用时设置到header中
 	Metadata           map[string]interface{} //local scope data  需要额外记录的数据，提供给外部使用 例如trace MDMark router
-	RouteTags          utiltags.Tags          //route tags is decided in router handler // balance route
-	Strategy           string                 //load balancing strategy
-	Filters            []string               // 对instance进行过滤
+	RouteTags          utiltags.Tags          //route tags is decided in router handler // 路由添加 balance route [common.BuildinTagVersion]
+	Strategy           string                 //load balancing strategy		负载均衡算法
+	Filters            []string               // 对依赖服务的instance进行过滤的函数名
 }
 
 //GetMark return match rule name that request matches

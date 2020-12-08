@@ -8,7 +8,7 @@ type GlobalCfg struct {
 	Panel       ControlPanel      `yaml:"control"`
 	Ssl         map[string]string `yaml:"ssl"`
 	Tracing     TracingStruct     `yaml:"tracing"`
-	DataCenter  *DataCenterInfo   `yaml:"region"`
+	DataCenter  *DataCenterInfo   `yaml:"region"` // 区域信息
 }
 
 // DataCenterInfo gives data center information
@@ -21,15 +21,15 @@ type DataCenterInfo struct {
 //ServiceComb 设置注册中心SC的地址，要开哪些传输协议， 调用链信息等
 type ServiceComb struct {
 	Registry           RegistryStruct      `yaml:"registry"`
-	Config             Config              `yaml:"config"`
+	Config             Config              `yaml:"config"` // 配置中心
 	ServiceDescription ServiceSpec         `yaml:"service"`
-	Protocols          map[string]Protocol `yaml:"protocols"`
+	Protocols          map[string]Protocol `yaml:"protocols"` // 服务端协议
 	Handler            HandlerStruct       `yaml:"handler"`
 	FlowControl        FlowControl         `yaml:"flowcontrol"`
 	Monitor            MonitorStruct       `yaml:"monitor"`
 	Metrics            MetricsStruct       `yaml:"metrics"`
 	Credentials        CredentialStruct    `yaml:"credentials"`
-	Transport          Transport           `yaml:"transport"`
+	Transport          Transport           `yaml:"transport"` // 服务器端限制协议的一些限制
 	NoRefreshSchema    bool                `yaml:"noRefreshSchema"`
 	DB                 storage.DB          `yaml:"db"`
 }
@@ -37,8 +37,8 @@ type ServiceComb struct {
 //Transport defines failure
 //TODO support TLS config
 type Transport struct {
-	Failure        map[string]string `yaml:"failure"`
-	MaxIdlCons     map[string]int    `yaml:"maxIdleCon"`
+	Failure        map[string]string `yaml:"failure"`    // 错误码的敏感信息保护
+	MaxIdlCons     map[string]int    `yaml:"maxIdleCon"` // 最大的空闲链接数
 	MaxBodyBytes   map[string]int64  `yaml:"maxBodyBytes"`
 	MaxHeaderBytes map[string]int    `yaml:"maxHeaderBytes"`
 	Timeout        map[string]string `yaml:"timeout"`
@@ -98,7 +98,7 @@ type Config struct {
 
 // ConfigClient client structure
 type ConfigClient struct {
-	Type            string                 `yaml:"type"`
+	Type            string                 `yaml:"type"` // 配置中心类别
 	ServerURI       string                 `yaml:"serverUri"`
 	RefreshMode     int                    `yaml:"refreshMode"`
 	RefreshInterval int                    `yaml:"refreshInterval"`

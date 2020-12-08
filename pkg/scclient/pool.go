@@ -51,7 +51,7 @@ func (p *AddressPool) SetAddress(addresses []string) {
 }
 
 // GetAvailableAddress Get an available address from pool by roundrobin
-// 获取可用的address
+// 获取可用的address 每次使用不同的地址
 func (p *AddressPool) GetAvailableAddress() string {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()

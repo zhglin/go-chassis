@@ -39,6 +39,7 @@ func (rl *ConsumerRateLimiterHandler) Handle(chain *handler.Chain, i *invocation
 		return
 	}
 	//get operation meta info ms.schema, ms.schema.operation, ms
+	// rlc.key用于区分不同的rateLimiters
 	if rate.GetRateLimiters().TryAccept(rlc.Key, rlc.Rate, rlc.Rate/5) {
 		chain.Next(i, cb)
 	} else {

@@ -72,7 +72,7 @@ func GetIPIndex(ip string) *SourceInfo {
 }
 
 // GetProvidersFromCache get local provider simpleCache
-// 获取依赖service 所有的版本
+// 获取当前service依赖的所有service,提供给discovery定时获取instance
 func GetProvidersFromCache() []*MicroService {
 	microServices := make([]*MicroService, 0)
 	items := ProvidersMicroServiceCache.Items()
@@ -82,14 +82,15 @@ func GetProvidersFromCache() []*MicroService {
 			openlog.Warn("not microService type")
 			continue
 		}
-		microService.Version = common.AllVersion // 设置版本规则
+		microService.Version = common.AllVersion // 设置需要获取service的版本规则
 		microServices = append(microServices, &microService)
 	}
 	return microServices
 }
 
 // AddProviderToCache refresh provider simpleCache
-// 添加依赖service
+// 添加依赖service  serverName是依赖的服务名  appId上层可设置,未设置就是当前service的appId
+// 可以同serviceName不同的appId
 func AddProviderToCache(serverName, appID string) {
 	if appID == "" {
 		appID = runtime.App

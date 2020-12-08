@@ -44,7 +44,7 @@ func (ri *RestInvoker) ContextDo(ctx context.Context, req *http.Request, options
 	if req.URL.Scheme != HTTP {
 		return nil, fmt.Errorf("scheme invalid: %s, only support {http}://", req.URL.Scheme)
 	}
-	// 设置consumer
+	// 设置request.head头信息 包含当前serviceName
 	common.SetXCSEContext(map[string]string{common.HeaderSourceName: runtime.ServiceName}, req)
 	// set headers to Ctx  headers设置到context中
 	if len(req.Header) > 0 {
@@ -84,6 +84,7 @@ func (ri *RestInvoker) ContextDo(ctx context.Context, req *http.Request, options
 
 	err := ri.invoke(inv)
 
+	// 请求执行完之后,如果是StrategySessionStickiness的负载均衡策略,设置SessionStickiness的缓存
 	if err == nil {
 		setCookieToCache(*inv, getNamespaceFromMetadata(opts.Metadata))
 	}

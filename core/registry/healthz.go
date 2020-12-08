@@ -130,11 +130,11 @@ func RefreshCache(service string, ups []*MicroServiceInstance, downs map[string]
 	for _, exp := range mapExps {
 		// case: keep still alive instances  现有的节点依旧是开启状态
 		if _, ok := mapUps[exp.InstanceID]; ok {
-			lefts = append(lefts, exp)
+			lefts = append(lefts, exp) // 现有的正常节点
 			openlog.Debug(fmt.Sprintf("cache instance: %v", exp))
 			continue
 		} else {
-			// 未开启的关闭链接
+			// 现有的节点已不存在  关闭链接
 			for p, ep := range exp.EndpointsMap {
 				if err := chassisClient.Close(p, service, ep.GenEndpoint()); err != nil {
 					if err != chassisClient.ErrClientNotExist {
@@ -147,11 +147,13 @@ func RefreshCache(service string, ups []*MicroServiceInstance, downs map[string]
 				}
 			}
 		}
-		// case: remove instances with the non-up status  在downs中 跳过
+		// case: remove instances with the non-up status
+		// status 不是开启状态
 		if _, ok := downs[exp.InstanceID]; ok {
 			continue
 		}
-		// case: keep instances returned HC ok  即不在up也不在down instance被删除了
+		// case: keep instances returned HC ok
+		// 即不在up也不在down instance被删除了或者未发现到
 		if err := HealthCheck(service, exp.version(), exp.appID(), exp); err == nil {
 			lefts = append(lefts, exp)
 		}
@@ -161,14 +163,15 @@ func RefreshCache(service string, ups []*MicroServiceInstance, downs map[string]
 		if _, ok := mapExps[up.InstanceID]; ok {
 			continue
 		}
-		// case: add new come in instances  新加的instance
+		// case: add new come in instances
+		// 新加的instance
 		saves = append(saves, up)
 	}
 
-	// 不存在up的instance
 	lefts = append(lefts, saves...)
 	if len(lefts) == 0 {
 		//todo remove this when the simpleCache struct can delete the key if the input is an empty slice
+		// 不存在up的instance
 		MicroserviceInstanceIndex.Delete(service)
 		openlog.Info(fmt.Sprintf("Delete the service [%s] in the cache", service))
 		return

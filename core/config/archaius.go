@@ -7,6 +7,7 @@ import (
 )
 
 // InitArchaius initialize the archaius
+// 配置文件交给archaius解析管理
 func InitArchaius() error {
 	var err error
 

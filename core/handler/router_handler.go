@@ -35,6 +35,7 @@ func (ph *RouterHandler) Handle(chain *Chain, i *invocation.Invocation, cb invoc
 		}
 	}
 
+	// 匹配路由规则并设置对应的路由标记
 	err := router.Route(h, &registry.SourceInfo{Name: i.SourceMicroService, Tags: tags}, i)
 	if err != nil {
 		WriteBackErr(err, status.Status(i.Protocol, status.ServiceUnavailable), cb)

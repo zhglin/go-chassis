@@ -17,6 +17,7 @@ import (
 	"github.com/go-chassis/openlog"
 )
 
+// 链接管理
 var clients = make(map[string]ProtocolClient)
 var sl sync.RWMutex
 
@@ -52,6 +53,7 @@ func GetFailureMap(p string) map[string]bool {
 
 //GetMaxIdleCon get max idle connection number you defined
 //default is 512
+// 获取指定service配置的最大的空闲连接数 未设置就使用默认的
 func GetMaxIdleCon(p string) int {
 	n, ok := config.GetTransportConf().MaxIdlCons[p]
 	if !ok {
@@ -61,16 +63,21 @@ func GetMaxIdleCon(p string) int {
 }
 
 // CreateClient is for to create client based on protocol and the service name
+// 创建链接
 func CreateClient(protocol, service, endpoint string, sslEnable bool) (ProtocolClient, error) {
+	// 获取指定协议的创建函数
 	f, err := GetClientNewFunc(protocol)
 	if err != nil {
 		openlog.Error(fmt.Sprintf("do not support [%s] client", protocol))
 		return nil, err
 	}
+
+	// 处理ssl配置
 	tlsConfig, sslConfig, err := chassisTLS.GetTLSConfigByService(service, protocol, common.Consumer)
 	//it will set tls config when provider's endpoint has sslEnable=true suffix or
 	// consumer had set provider tls config
 	if err != nil {
+		// 开启了ssl 但是没有对应的配置
 		if sslEnable || !chassisTLS.IsSSLConfigNotExist(err) {
 			return nil, err
 		}
@@ -82,16 +89,20 @@ func CreateClient(protocol, service, endpoint string, sslEnable bool) (ProtocolC
 		openlog.Warn(fmt.Sprintf("%s %s TLS mode, verify peer: %t, cipher plugin: %s.",
 			protocol, service, sslConfig.VerifyPeer, sslConfig.CipherPlugin))
 	}
+
+	// 获取超时时间的配置key
 	var command string
 	if service != "" {
 		command = strings.Join([]string{common.Consumer, service}, ".")
 	}
+
+	// 返回链接实例
 	return f(Options{
 		Service:   service,
 		TLSConfig: tlsConfig,
 		PoolSize:  GetMaxIdleCon(protocol),
 		Failure:   GetFailureMap(protocol),
-		Timeout:   config.GetTimeoutDurationFromArchaius(command, common.Consumer),
+		Timeout:   config.GetTimeoutDurationFromArchaius(command, common.Consumer), // 获取超时时间 支持配置变更
 		Endpoint:  endpoint,
 	})
 }
@@ -102,13 +113,17 @@ func generateKey(protocol, service, endpoint string) string {
 }
 
 // GetClient is to get the client based on protocol, service,endpoint name
+// 获取invocation的请求链接
 func GetClient(i *invocation.Invocation) (ProtocolClient, error) {
 	var c ProtocolClient
 	var err error
+	// 生成标识key
 	key := generateKey(i.Protocol, i.MicroServiceName, i.Endpoint)
 	sl.RLock()
 	c, ok := clients[key]
 	sl.RUnlock()
+
+	// 不存在就创建对应的链接
 	if !ok {
 		openlog.Info("Create client for " + i.Protocol + ":" + i.MicroServiceName + ":" + i.Endpoint)
 		c, err = CreateClient(i.Protocol, i.MicroServiceName, i.Endpoint, i.SSLEnable)
@@ -123,7 +138,7 @@ func GetClient(i *invocation.Invocation) (ProtocolClient, error) {
 }
 
 //Close close a client conn
-// 关闭一个节点链接
+// 关闭指定的节点链接
 func Close(protocol, service, endpoint string) error {
 	key := generateKey(protocol, service, endpoint)
 	sl.RLock()

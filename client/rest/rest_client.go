@@ -38,6 +38,7 @@ var (
 	ErrInvalidResp = errors.New("rest consumer response arg is not *rest.Response type")
 )
 
+// 注册rest的协议的链接创建函数
 func init() {
 	client.InstallPlugin(Name, NewRestClient)
 }
@@ -76,6 +77,7 @@ func newTransport(opts client.Options) *http.Transport {
 }
 
 // If a request fails, we generate an error.
+// 错误保护
 func (c *Client) failure2Error(e error, r *http.Response, addr string) error {
 	if e != nil {
 		return e
@@ -89,6 +91,7 @@ func (c *Client) failure2Error(e error, r *http.Response, addr string) error {
 
 	codeStr := strconv.Itoa(r.StatusCode)
 	// The Failure map defines whether or not a request fail.
+	// 敏感错误码 转换错误返回
 	if c.opts.Failure["http_"+codeStr] {
 		return fmt.Errorf("http error status [%d], server addr: [%s], will not print response body, to protect service sensitive data", r.StatusCode, addr)
 	}
@@ -97,21 +100,29 @@ func (c *Client) failure2Error(e error, r *http.Response, addr string) error {
 }
 
 //Call is a method which uses client struct object
+// 执行网络调用
 func (c *Client) Call(ctx context.Context, addr string, inv *invocation.Invocation, rsp interface{}) error {
 	var err error
+	// 转换httpRequest
 	reqSend, err := httputil.HTTPRequest(inv)
 	if err != nil {
 		return err
 	}
+
+	// 校验resp
 	resp, ok := rsp.(*http.Response)
 	if !ok {
 		return ErrInvalidResp
 	}
 
+	// 设置head头
 	c.contextToHeader(ctx, reqSend)
 
+	// todo 貌似缺少个 reqSend.WithContent
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	// 设置scheme addr
 	if c.opts.TLSConfig != nil {
 		reqSend.URL.Scheme = SchemaHTTPS
 	} else {
@@ -122,7 +133,10 @@ func (c *Client) Call(ctx context.Context, addr string, inv *invocation.Invocati
 	}
 
 	//increase the max connection per host to prevent error "no free connection available" error while sending more requests.
+	//增加每台主机的最大连接，以防止发送更多请求时出现“无空闲连接可用”错误。
 	c.c.Transport.(*http.Transport).MaxIdleConnsPerHost = 512 * 20
+
+	// todo
 	var temp *http.Response
 	errChan := make(chan error, 1)
 	go func() {
@@ -164,11 +178,13 @@ func (c *Client) GetOptions() client.Options {
 	return c.opts
 }
 
+// 设置head头
 func (c *Client) contextToHeader(ctx context.Context, req *http.Request) {
 	for k, v := range common.FromContext(ctx) {
 		req.Header.Set(k, v)
 	}
 
+	// 没指定content-type 设置默认的json
 	if len(req.Header.Get("Content-Type")) == 0 {
 		req.Header.Set("Content-Type", common.JSON)
 	}

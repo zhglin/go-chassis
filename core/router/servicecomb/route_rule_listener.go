@@ -31,7 +31,7 @@ import (
 type routeRuleEventListener struct{}
 
 // update route rule of a service
-// 配置中间监听routeRule更新
+// 配置中心监听routeRule更新
 func (r *routeRuleEventListener) Event(e *event.Event) {
 	if e == nil {
 		openlog.Warn("Event pointer is nil")
@@ -97,6 +97,6 @@ func SaveRouteRule(service string, raw string, isV2 bool) {
 func validateAndUpdate(routeRules []*config.RouteRule, service string) {
 	if router.ValidateRule(map[string][]*config.RouteRule{service: routeRules}) {
 		cseRouter.SetRouteRuleByKey(service, routeRules)
-		wp.GetPool().Reset(service)
+		wp.GetPool().Reset(service) //删除权重信息
 	}
 }

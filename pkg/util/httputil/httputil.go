@@ -56,6 +56,7 @@ func GetContentType(req *http.Request) string {
 }
 
 //HTTPRequest convert invocation to http request
+// 校验http 填充header
 func HTTPRequest(inv *invocation.Invocation) (*http.Request, error) {
 	reqSend, ok := inv.Args.(*http.Request)
 	if !ok {
@@ -83,7 +84,7 @@ func ReadBody(resp *http.Response) []byte {
 }
 
 // GetRespCookie returns response Cookie.
-// 从response中获取指定的cookies
+// 从http.response中获取指定的cookies
 func GetRespCookie(resp *http.Response, key string) []byte {
 	for _, c := range resp.Cookies() {
 		if c.Name == key {

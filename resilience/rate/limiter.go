@@ -47,6 +47,7 @@ func (qpsL *Limiters) TryAccept(name string, qps, burst int) bool {
 	if !ok {
 		qpsL.RUnlock()
 		//If the name operation is not present in the map, then add the new name operation to the map
+		// 配置未及时处理 直接添加
 		return qpsL.addLimiter(name, qps, burst)
 	}
 	qpsL.RUnlock()

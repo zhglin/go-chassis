@@ -9,22 +9,24 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/cenkalti/backoff"
+	//"github.com/cenkalti/backoff"
 	"github.com/go-chassis/go-chassis/v2/control"
 	"github.com/go-chassis/go-chassis/v2/core/invocation"
 	"github.com/go-chassis/go-chassis/v2/core/loadbalancer"
 	"github.com/go-chassis/go-chassis/v2/core/status"
 	"github.com/go-chassis/go-chassis/v2/pkg/util"
+	"github.com/go-chassis/go-chassis/v2/resilience/retry/backof"
 	"github.com/go-chassis/openlog"
 )
 
 // LBHandler loadbalancer handler struct
 type LBHandler struct{}
 
+// 获取服务的节点
 func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.LoadBalancingConfig) (*registry.Endpoint, error) {
 	var strategyFun func() loadbalancer.Strategy
 	var err error
-	// 设置strategyFun
+	// 设置strategyFun 如果invocation中未设置负载均衡算法就使用lb的配置
 	if i.Strategy == "" {
 		i.Strategy = lbConfig.Strategy
 		strategyFun, err = loadbalancer.GetStrategyPlugin(i.Strategy)
@@ -40,12 +42,12 @@ func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.Load
 		}
 	}
 
-	// 设置Filters
+	// 设置Filters函数
 	if len(i.Filters) == 0 {
 		i.Filters = lbConfig.Filters
 	}
 
-	// 获取balance实例
+	// 获取balance实例 每次请求都创建新的实例
 	s, err := loadbalancer.BuildStrategy(i, strategyFun())
 	if err != nil {
 		return nil, err
@@ -67,6 +69,7 @@ func (lb *LBHandler) getEndpoint(i *invocation.Invocation, lbConfig control.Load
 	}
 
 	// 判断ins是否支持protocol
+	// ins.EndpointsMap是已protocol为key 这里的port有问题
 	protocolServer := util.GenProtoEndPoint(i.Protocol, i.Port)
 	ep, ok := ins.EndpointsMap[protocolServer]
 	if !ok {
@@ -91,6 +94,7 @@ func (lb *LBHandler) Handle(chain *Chain, i *invocation.Invocation, cb invocatio
 	}
 }
 
+// 没有重试机制的handle
 func (lb *LBHandler) handleWithNoRetry(chain *Chain, i *invocation.Invocation, lbConfig control.LoadBalancingConfig, cb invocation.ResponseCallBack) {
 	ep, err := lb.getEndpoint(i, lbConfig)
 	if err != nil {
@@ -98,17 +102,18 @@ func (lb *LBHandler) handleWithNoRetry(chain *Chain, i *invocation.Invocation, l
 		return
 	}
 
-	i.Endpoint = ep.Address
+	i.Endpoint = ep.Address // 设置请求地址
 	i.SSLEnable = ep.IsSSLEnable()
 	chain.Next(i, cb)
 }
 
+// 有重试机制的handle
 func (lb *LBHandler) handleWithRetry(chain *Chain, i *invocation.Invocation, lbConfig control.LoadBalancingConfig, cb invocation.ResponseCallBack) {
 	retryOnSame := lbConfig.RetryOnSame
 	retryOnNext := lbConfig.RetryOnNext
-	handlerIndex := i.HandlerIndex
+	handlerIndex := i.HandlerIndex // 保留下handlerIndex
 	var invResp *invocation.Response
-	var reqBytes []byte
+	var reqBytes []byte // 额外保存下 防止后面的handler修改掉
 	if req, ok := i.Args.(*http.Request); ok {
 		if req != nil {
 			if req.Body != nil {
@@ -145,7 +150,9 @@ func (lb *LBHandler) handleWithRetry(chain *Chain, i *invocation.Invocation, lbC
 			}
 		})
 
+		// 达到相同的节点调用次数限制就更换节点
 		if callTimes >= retryOnSame+1 {
+			// 是否需要更换节点
 			if retryOnNext <= 0 {
 				return backoff.Permanent(errors.New("retry times expires"))
 			}

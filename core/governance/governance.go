@@ -29,10 +29,34 @@ const (
 	KindRateLimitingPrefix = "servicecomb.rateLimiting"
 )
 
-// 默认的解析函数
+/*
+servicecomb:
+  match:
+    traffic-to-some-api-from-jack: |
+        matches:
+          - headers:
+              cookie:
+                regex: "^(.*?;)?(user=jack)(;.*)?$"
+              os:
+                contains: linux
+            apiPath:
+              exact: "/some/api"
+            method:
+              - GET
+              - POST
+            trafficMarkPolicy: once
+  rateLimiting:
+    limiterPolicy1: |
+      match: traffic-to-some-api-from-jack
+      rate: 10
+      burst: 1
+
+*/
+
+// 配置前缀对应的解析函数
 var processFuncMap = map[string]ProcessFunc{
 	//build-in
-	KindMatchPrefix:        ProcessMatch,   // 匹配
+	KindMatchPrefix:        ProcessMatch,   // 流量打标
 	KindRateLimitingPrefix: ProcessLimiter, // 限流
 }
 
@@ -59,7 +83,7 @@ func Init() {
 			openlog.Warn("not string format,key:" + k)
 		}
 		openlog.Debug(k + ":" + value)
-		// 解析
+		// 解析 指定的配置
 		for prefix, f := range processFuncMap {
 			if strings.HasPrefix(k, prefix) {
 				err := f(k, value)

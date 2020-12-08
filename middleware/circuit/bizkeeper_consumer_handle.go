@@ -22,6 +22,7 @@ type BizKeeperConsumerHandler struct{}
 
 // Handle function is for to handle the chain
 func (bk *BizKeeperConsumerHandler) Handle(chain *handler.Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
+	// 获取熔断配置  以及cache的key
 	command, cmdConfig := control.DefaultPanel.GetCircuitBreaker(*i, common.Consumer)
 
 	cmdConfig.MetricsConsumerNum = archaius.GetInt("servicecomb.metrics.circuitMetricsConsumerNum", hystrix.DefaultMetricsConsumerNum)

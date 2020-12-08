@@ -19,6 +19,7 @@ type LoadBalancingEventListener struct {
 }
 
 //Event is a method used to handle a load balancing event
+// 配置中心balance的变更事件 全量读取 刷新cache
 func (e *LoadBalancingEventListener) Event(evt *event.Event) {
 	openlog.Debug(fmt.Sprintf("LB event, key: %s, type: %s", evt.Key, evt.EventType))
 	if err := config.ReadLBFromArchaius(); err != nil {

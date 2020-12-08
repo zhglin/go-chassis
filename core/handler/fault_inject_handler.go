@@ -33,10 +33,10 @@ func (rl *FaultHandler) Name() string {
 
 // Handle is to handle the API
 func (rl *FaultHandler) Handle(chain *Chain, inv *invocation.Invocation, cb invocation.ResponseCallBack) {
-	// 配置
+	// 获取配置 区分service protocol schema operation
 	faultConfig := GetFaultConfig(inv.Protocol, inv.MicroServiceName, inv.SchemaID, inv.OperationID)
 
-	// 协议对应的函数
+	// 协议对应的错误函数
 	faultInject, ok := fault.Injectors[inv.Protocol]
 	r := &invocation.Response{}
 	if !ok {
@@ -48,7 +48,7 @@ func (rl *FaultHandler) Handle(chain *Chain, inv *invocation.Invocation, cb invo
 	}
 
 	faultValue := faultConfig
-	err := faultInject(faultValue, inv)
+	err := faultInject(faultValue, inv) // 生效
 	if err != nil {
 		if strings.Contains(err.Error(), "injecting abort") { // 执行的是终止
 			switch inv.Reply.(type) {

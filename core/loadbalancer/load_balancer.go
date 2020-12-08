@@ -73,7 +73,7 @@ func BuildStrategy(i *invocation.Invocation,
 		return nil, lbErr
 	}
 
-	// 过滤instance
+	// 根据额外的过滤函数进一步过滤instance
 	if isFilterExist {
 		filterFuncs := make([]Filter, 0)
 		//append filters in config
@@ -151,6 +151,7 @@ func InstallFilter(name string, f Filter) {
 // variables for latency map, rest and highway requests count
 var (
 	//ProtocolStatsMap saves all stats for all service's protocol, one protocol has a lot of instances
+	// 请求的耗时 key=>providerServiceName/tags/protocol => 每个实例address一个protocolStats
 	ProtocolStatsMap = make(map[string][]*ProtocolStats)
 	//maintain different locks since multiple goroutine access the map
 	LatencyMapRWMutex sync.RWMutex
@@ -163,6 +164,7 @@ func BuildKey(microServiceName, tags, protocol string) string {
 }
 
 // SetLatency for a instance, it only save latest 10 stats for instance's protocol
+// 记录每个地址的请求耗时
 func SetLatency(latency time.Duration, addr, microServiceName string, tags utiltags.Tags, protocol string) {
 	key := BuildKey(microServiceName, tags.String(), protocol)
 
@@ -176,7 +178,7 @@ func SetLatency(latency time.Duration, addr, microServiceName string, tags utilt
 	for _, v := range stats {
 		if v.Addr == addr {
 			v.SaveLatency(latency)
-			exist = true
+			exist = true // addr地址已存在
 		}
 	}
 	if !exist {

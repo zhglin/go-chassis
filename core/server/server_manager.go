@@ -82,6 +82,7 @@ func UnRegistrySelfInstances() error {
 }
 
 //Init initializes
+// 初始化全部服务端协议
 func Init() error {
 	var err error
 	for k, v := range config.GlobalDefinition.ServiceComb.Protocols {
@@ -94,6 +95,7 @@ func Init() error {
 
 }
 
+// 初始化指定协议
 func initialServer(providerMap map[string]string, p model.Protocol, name string) error {
 	protocolName, _, err := util.ParsePortName(name)
 	if err != nil {
@@ -124,6 +126,7 @@ func initialServer(providerMap map[string]string, p model.Protocol, name string)
 		}
 	}
 
+	// 不同的chain handler配置
 	chainName := common.DefaultChainName
 	if _, ok := providerMap[name]; ok {
 		chainName = name

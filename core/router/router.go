@@ -60,9 +60,9 @@ func BuildRouter(name string) error {
 //it will set RouteTag to invocation
 // 匹配route  header请求的head
 func Route(header map[string]string, si *registry.SourceInfo, inv *invocation.Invocation) error {
-	rules := SortRules(inv.MicroServiceName)
+	rules := SortRules(inv.MicroServiceName) // 获取配置
 	for _, rule := range rules {
-		if Match(inv, rule.Match, header, si) {
+		if Match(inv, rule.Match, header, si) { // 每条规则进行匹配
 			tag := FitRate(rule.Routes, inv.MicroServiceName)
 			// inv里面设置routeTag
 			inv.RouteTags = routeTagToTags(tag)
@@ -91,7 +91,7 @@ func FitRate(tags []*config.RouteTag, dest string) *config.RouteTag {
 // match check the route rule
 // 是否匹配match
 func Match(inv *invocation.Invocation, matchConf config.Match, headers map[string]string, source *registry.SourceInfo) bool {
-	//validate template first 匹配已设置的规则
+	//validate template first 匹配已设置的规则 是否参考流量标记
 	if refer := matchConf.Refer; refer != "" {
 		marker.Mark(inv)
 		// 是否能匹配
@@ -106,7 +106,7 @@ func Match(inv *invocation.Invocation, matchConf config.Match, headers map[strin
 }
 
 // SourceMatch check the source route
-// 是否匹配match
+// 是否匹配match tag的匹配要全部都匹配
 func SourceMatch(match *config.Match, headers map[string]string, source *registry.SourceInfo) bool {
 	//source not match consumer来源
 	if match.Source != "" && match.Source != source.Name {

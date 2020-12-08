@@ -53,7 +53,7 @@ func (ri *abstractInvoker) invoke(i *invocation.Invocation) error {
 }
 
 // setCookieToCache   set go-chassisLB cookie to cache when use SessionStickiness strategy
-// 设置sessionId  根据响应进行设置
+// 根据响应进行设置 SessionStickiness的缓存
 func setCookieToCache(inv invocation.Invocation, namespace string) {
 	if inv.Strategy != loadbalancer.StrategySessionStickiness {
 		return
@@ -63,6 +63,7 @@ func setCookieToCache(inv invocation.Invocation, namespace string) {
 	if cookie != "" {
 		cookies := strings.Split(cookie, "=")
 		if len(cookies) > 1 {
+			// 设置stickiness缓存
 			session.AddSessionStickinessToCache(cookies[1], namespace)
 		}
 	}

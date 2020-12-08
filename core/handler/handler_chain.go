@@ -101,7 +101,7 @@ func CreateChains(chainType string, handlerNameMap map[string]string) error {
 }
 
 //CreateChain create consumer or provider's chain,the handlers is different
-// 创建chain
+// 创建chain serviceType = consumer || provider
 func CreateChain(serviceType string, chainName string, handlerNames ...string) (*Chain, error) {
 	c := &Chain{
 		ServiceType: serviceType,

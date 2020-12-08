@@ -33,6 +33,7 @@ func GetTracerFunc(name string) (NewTracer, error) {
 }
 
 // Init initialize the global tracer
+// 初始化tracer
 func Init() error {
 	openlog.Info("Tracing enabled. Start to init tracer.")
 	if config.GlobalDefinition.Tracing.Tracer == "" {

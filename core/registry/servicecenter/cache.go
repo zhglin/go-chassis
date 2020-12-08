@@ -36,6 +36,7 @@ type CacheManager struct {
 }
 
 // AutoSync automatically sync the running instances
+// 刷新依赖服务的instance信息
 func (c *CacheManager) AutoSync() {
 	// 刷新cache service 的 instance
 	c.refreshCache()
@@ -217,16 +218,17 @@ func checkIfMicroServiceExistInList(microserviceList []*scregistry.MicroService,
 // pullMicroServiceInstance pull micro-service instance
 // 拉取instance
 func (c *CacheManager) pullMicroServiceInstance() error {
-	//Get Providers
+	//Get Providers 获取依赖的service
 	services := GetCriteria()
 	serviceNameSet, _ := getServiceSet(services)
-	// 清理instance
+	// 清理不再依赖service以及instance
 	c.compareAndDeleteOutdatedProviders(serviceNameSet)
 	if len(services) == 0 {
 		openlog.Info("no providers")
 		return nil
 	}
 	//fetch remote based on app and service
+	// 获取所有依赖service的instance
 	response, err := c.registryClient.BatchFindInstances(runtime.ServiceID, services)
 	if err != nil {
 		if err == client.ErrNotModified || err == client.ErrEmptyCriteria {
@@ -253,9 +255,11 @@ func (c *CacheManager) compareAndDeleteOutdatedProviders(newProviders sets.Strin
 }
 
 // getServiceSet regroup the providers by service name
+// set去重
 func getServiceSet(exist []*scregistry.FindService) (sets.String, map[string]sets.String) {
 	//get Provider's instances
-	serviceNameSet := sets.NewString()                     // key is serviceName
+	serviceNameSet := sets.NewString() // key is serviceName
+	// map[serviceName][appId]=>
 	serviceNameAppIDKeySet := make(map[string]sets.String) // key is "serviceName" value is app sets
 	if len(exist) == 0 {
 		return serviceNameSet, serviceNameAppIDKeySet
@@ -283,7 +287,7 @@ func getServiceSet(exist []*scregistry.FindService) (sets.String, map[string]set
 
 //set app into instance metadata, split instances into ups and downs
 //set instance to cache by service name
-// 过滤instance的status 并设置cache
+// 过滤获取的service instance的status 并刷新cache
 func filter(providerInstances map[string][]*registry.MicroServiceInstance) {
 	//append instances from different app and same service name into one unified slice
 	downs := make(map[string]struct{}) // 离线
@@ -309,6 +313,7 @@ func filter(providerInstances map[string][]*registry.MicroServiceInstance) {
 }
 
 // watch watching micro-service instance status
+// watch当前服务的结果
 func watch(response *client.MicroServiceInstanceChangedEvent) {
 	if response.Instance.Status != client.MSInstanceUP {
 		response.Action = common.Delete

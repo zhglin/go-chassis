@@ -22,6 +22,7 @@ type LagerEventListener struct {
 }
 
 //Event is a method for Lager event listening
+// 设置记录日志的最小级别
 func (el *LagerEventListener) Event(e *event.Event) {
 	logger := openlog.GetLogger()
 	l, ok := logger.(lager.Logger)

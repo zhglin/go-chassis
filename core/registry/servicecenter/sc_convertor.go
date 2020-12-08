@@ -84,7 +84,7 @@ func ToMicroServiceInstance(ins *scregistry.MicroServiceInstance) *registry.Micr
 	if msi.Metadata == nil {
 		msi.Metadata = make(map[string]string)
 	}
-	msi.Metadata["version"] = ins.Version // 用于搜索
+	msi.Metadata["version"] = ins.Version // 用于instance的过滤
 	return msi
 }
 

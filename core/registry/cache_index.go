@@ -90,12 +90,12 @@ func (ic *IndexCache) Get(k string, tags map[string]string) ([]*MicroServiceInst
 	}
 	//if version is latest, then set it to real version
 	ic.setTagsBeforeQuery(k, tags)
-	//find from indexed cache first
+	//find from indexed cache first 生成cacheKey
 	indexKey := GetIndexedCacheKey(k, tags)
 	savedResult, ok := ic.indexedCache.Get(indexKey)
 	if !ok {
 		//no result, then find it and save result
-		// 根据tag查找instance
+		// 根据tag查找instance 有一个满足就可以
 		instances, _ := value.([]*MicroServiceInstance)
 		queryResult := make([]*MicroServiceInstance, 0, len(instances))
 		for _, instance := range instances {
@@ -116,7 +116,6 @@ func (ic *IndexCache) Get(k string, tags map[string]string) ([]*MicroServiceInst
 		return queryResult, true
 	}
 	return savedResult.([]*MicroServiceInstance), ok
-
 }
 
 // 修改版本号 latest 改成 最大的版本号
@@ -130,6 +129,7 @@ func (ic *IndexCache) setTagsBeforeQuery(k string, tags map[string]string) {
 }
 
 //GetIndexedCacheKey combine keys in order, use sets to return sorted list
+// 把service名称以及tag转换成cacheKey
 func GetIndexedCacheKey(service string, tags map[string]string) (ss string) {
 	ss = "service:" + service
 	keys := sets.NewString()

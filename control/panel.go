@@ -28,9 +28,13 @@ const (
 //you can use different panel implementation to pull different of configs from Istio or Archaius
 //TODO able to set configs
 type Panel interface {
+	// 熔断
 	GetCircuitBreaker(inv invocation.Invocation, serviceType string) (string, hystrix.CommandConfig)
+	// 负载均衡
 	GetLoadBalancing(inv invocation.Invocation) LoadBalancingConfig
+	// 限流
 	GetRateLimiting(inv invocation.Invocation, serviceType string) RateLimitingConfig
+	// 错误注入
 	GetFaultInjection(inv invocation.Invocation) model.Fault
 	GetEgressRule() []EgressConfig
 }

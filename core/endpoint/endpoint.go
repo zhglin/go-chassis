@@ -11,6 +11,7 @@ import (
 
 //GetEndpoint is an API used to get the endpoint of a service in discovery service
 //it will only return endpoints of a service
+// 从注册中心查找指定service的instance节点地址
 func GetEndpoint(appID, microService, version string) (string, error) {
 	var endpoint string
 	tags := utiltags.NewDefaultTag(version, appID)

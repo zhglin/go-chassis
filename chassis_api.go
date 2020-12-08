@@ -47,6 +47,7 @@ func init() {
 
 //RegisterSchema Register a API service to specific server by name
 //You must register API first before Call Init
+// 注册api路由
 func RegisterSchema(serverName string, structPtr interface{}, opts ...server.RegisterOption) {
 	goChassis.registerSchema(serverName, structPtr, opts...)
 }
@@ -141,15 +142,19 @@ func waitingSignal() {
 }
 
 //GracefulShutdown graceful shut down api
+// 服务关闭
 func GracefulShutdown(s os.Signal) {
 	if !config.GetRegistratorDisable() {
+		// 关闭heartBeat
 		registry.HBService.Stop()
 		openlog.Info("unregister servers ...")
+		// 注销注册中心
 		if err := server.UnRegistrySelfInstances(); err != nil {
 			openlog.Warn("servers failed to unregister: " + err.Error())
 		}
 	}
 
+	// 关闭链接
 	for name, s := range server.GetServers() {
 		openlog.Info("stopping server " + name + "...")
 		err := s.Stop()
@@ -163,7 +168,9 @@ func GracefulShutdown(s os.Signal) {
 }
 
 //Init prepare the chassis framework runtime
+// 初始化chassis
 func Init() error {
+	// 设置默认的consumerChain
 	if goChassis.DefaultConsumerChainNames == nil {
 		defaultChain := strings.Join([]string{
 			handler.Router,
@@ -175,6 +182,8 @@ func Init() error {
 			common.DefaultKey: defaultChain,
 		}
 	}
+
+	// 设置默认的providerChain
 	if goChassis.DefaultProviderChainNames == nil {
 		defaultChain := strings.Join([]string{
 			handler.TracingProvider,

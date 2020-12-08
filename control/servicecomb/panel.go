@@ -15,10 +15,11 @@ import (
 type Panel struct {
 }
 
+// 创建panel
 func newPanel(options control.Options) control.Panel {
-	Init()
-	SaveToLBCache(config.GetLoadBalancing())
-	SaveToCBCache(config.GetHystrixConfig())
+	Init()                                   // 监听配置中心
+	SaveToLBCache(config.GetLoadBalancing()) // 负载均衡配置
+	SaveToCBCache(config.GetHystrixConfig()) // 熔断配置
 	return &Panel{}
 }
 
@@ -62,6 +63,7 @@ func (p *Panel) GetRateLimiting(inv invocation.Invocation, serviceType string) c
 	rl.Enabled = archaius.GetBool("cse.flowcontrol."+serviceType+".qps.enabled", true)
 	if serviceType == common.Consumer {
 		keys := GetConsumerKey(inv.SourceMicroService, inv.MicroServiceName, inv.SchemaID, inv.OperationID)
+		// 从最细粒度开始传参数
 		rl.Rate, rl.Key = GetQPSRateWithPriority(
 			keys.OperationQualifiedName, keys.SchemaQualifiedName, keys.MicroServiceName)
 	} else {
@@ -89,6 +91,7 @@ func init() {
 }
 
 // GetQPSRateWithPriority get qps rate with priority
+// 获取consumer的限流配置  多个key 有一个匹配的就返回
 func GetQPSRateWithPriority(cmd ...string) (int, string) {
 	var (
 		qpsVal      int

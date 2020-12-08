@@ -47,6 +47,7 @@ func (s *HeartbeatService) DoHeartBeat(microServiceID, microServiceInstanceID st
 }
 
 // run runs the heartbeat system
+// 开启状态下 30秒注册一次
 func (s *HeartbeatService) run() {
 	for !s.shutdown {
 		s.DoHeartBeat(runtime.ServiceID, runtime.InstanceID)

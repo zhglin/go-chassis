@@ -14,6 +14,7 @@ var (
 
 //ParsePortName a port name is composite by protocol-name,like http-admin,http-api,grpc-console,grpc-api
 //ParsePortName return two string separately
+// 检查协议名称
 func ParsePortName(n string) (string, string, error) {
 	if n == "" {
 		return "", "", ErrInvalidPortName

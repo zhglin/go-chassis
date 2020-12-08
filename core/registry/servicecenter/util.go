@@ -73,6 +73,7 @@ func closeClient(r *client.RegistryClient) error {
 	return nil
 }
 
+// 设置instance tag的默认的值
 func wrapTagsForServiceCenter(t utiltags.Tags) utiltags.Tags {
 	if t.KV != nil {
 		if v, ok := t.KV[common.BuildinTagVersion]; !ok || v == "" {
@@ -90,7 +91,7 @@ func wrapTagsForServiceCenter(t utiltags.Tags) utiltags.Tags {
 }
 
 //GetCriteria generate batch find criteria from provider cache
-// 获取依赖的service，转换参数
+// 获取所有依赖的service，并转换成discovery系统参数
 func GetCriteria() []*scregistry.FindService {
 	services := make([]*scregistry.FindService, 0)
 	for _, service := range registry.GetProvidersFromCache() {
@@ -106,7 +107,7 @@ func GetCriteria() []*scregistry.FindService {
 }
 
 //GetCriteriaByService generate batch find criteria from provider cache with same service name and different app
-// 转换成sc的请求参数
+// 获取指定serviceName的依赖的service，并转换成discovery系统参数
 func GetCriteriaByService(sn string) []*scregistry.FindService {
 	services := make([]*scregistry.FindService, 0)
 	for _, service := range registry.GetProvidersFromCache() {

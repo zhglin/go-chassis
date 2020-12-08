@@ -9,7 +9,8 @@ import (
 )
 
 // ProviderRateLimiterHandler provider rate limiter handler
-// provider自身的限流
+// provider的限流 可以针对不同的sourceServiceName做不同的限制
+// 全局的所有接口的限流
 type ProviderRateLimiterHandler struct{}
 
 // Handle is to handle provider rateLimiter things

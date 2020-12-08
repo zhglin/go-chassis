@@ -29,6 +29,7 @@ func Init() error {
 	if err != nil {
 		return fmt.Errorf("router options error: %v", err)
 	}
+	// 初始化默认的router组件 并加载配置
 	err = DefaultRouter.Init(op)
 	if err != nil {
 		openlog.Error(err.Error())
@@ -39,7 +40,7 @@ func Init() error {
 }
 
 // ValidateRule validate the route rules of each service
-// 处理并校验 rules
+// 处理并校验 rules 有一个异常所有规则不生效
 func ValidateRule(rules map[string][]*config.RouteRule) bool {
 	for name, rule := range rules {
 		for _, route := range rule {

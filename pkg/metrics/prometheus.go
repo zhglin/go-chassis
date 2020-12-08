@@ -44,6 +44,7 @@ func NewPrometheusExporter(options Options) Registry {
 }
 
 // EnableRunTimeMetrics enable runtime metrics
+// 开启运行时监控
 func EnableRunTimeMetrics() {
 	GetSystemPrometheusRegistry().MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
 	GetSystemPrometheusRegistry().MustRegister(prometheus.NewGoCollector())

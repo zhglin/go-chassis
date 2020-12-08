@@ -74,7 +74,7 @@ type RegistryClient struct {
 	conns      map[string]*websocket.Conn
 	apiVersion string
 	revision   string
-	pool       *AddressPool
+	pool       *AddressPool // 注册中心的可用节点
 }
 
 // RegistryConfig is a structure to store registry configurations like address of cc, ssl configurations and tenant name
@@ -136,7 +136,7 @@ func (c *RegistryClient) Initialize(opt Options) (err error) {
 }
 
 // updateAPIPath Updates the Base PATH anf HEADERS Based on the version of SC used.
-// register api不同版本好对应的path
+// register api不同版本设置对应的path
 func (c *RegistryClient) updateAPIPath() {
 	//Check for the env Name in Container to get Domain Name
 	//Default value is  "default"

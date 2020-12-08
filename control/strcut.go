@@ -6,21 +6,22 @@ type LoadBalancingConfig struct {
 	Strategy     string
 	Filters      []string // 指定的instance过滤方法
 	RetryEnabled bool     // 是否自动重试
-	RetryOnSame  int
-	RetryOnNext  int
-	BackOffKind  string
-	BackOffMin   int
-	BackOffMax   int
+	RetryOnSame  int      // 同节点的重试次数
+	RetryOnNext  int      // 重试的节点数
+	BackOffKind  string   // 重试策略
+	BackOffMin   int      // 指数退避算法的最小时间间隔
+	BackOffMax   int      // 指数退避算法的最大时间间隔
 
 	SessionTimeoutInSeconds int
 	SuccessiveFailedTimes   int
 }
 
 //RateLimitingConfig is a standardized model
+// 当前invocation的限流配置
 type RateLimitingConfig struct {
-	Key     string
-	Enabled bool
-	Rate    int
+	Key     string // 匹配到的key
+	Enabled bool   // 是否开启
+	Rate    int    // 流速
 }
 
 //EgressConfig is a standardized model

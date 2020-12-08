@@ -12,6 +12,7 @@ var cseRouter *Router
 
 //Router is cse router service
 type Router struct {
+	// provider对应的路由规则
 	routeRule map[string][]*config.RouteRule // service=>[]rule
 	lock      sync.RWMutex
 }

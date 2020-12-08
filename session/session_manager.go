@@ -24,12 +24,13 @@ var ErrResponseNil = errors.New("can not set session, resp is nil")
 var Cache *cache.Cache
 
 // SessionStickinessCache key: go-chassisLB , value is cookie
+// 记录不同请求的服务对应的sessionId, 不要求客户端携带cookie
 var SessionStickinessCache *cache.Cache
 
 // session管理器
 func init() {
-	Cache = initCache()
-	SessionStickinessCache = initCache()
+	Cache = initCache()                  // sessionId => address
+	SessionStickinessCache = initCache() // service namespace => 的sessionId
 	cookieMap = make(map[string]string)
 }
 func initCache() *cache.Cache {
@@ -37,7 +38,7 @@ func initCache() *cache.Cache {
 	return value
 }
 
-// context中的cookie
+// context中的cookie 与 SessionStickinessCache功能一致
 var cookieMap map[string]string
 
 // getLBCookie gets cookie from local map
@@ -77,7 +78,7 @@ func SetContextMetadata(ctx context.Context, key string, value string) context.C
 }
 
 //GetSessionFromResp return session uuid in resp if there is
-// http中获取cookie
+// http.response中获取指定key的cookie
 func GetSessionFromResp(cookieKey string, resp *http.Response) string {
 	bytes := httputil.GetRespCookie(resp, cookieKey)
 	if bytes != nil {
@@ -87,7 +88,7 @@ func GetSessionFromResp(cookieKey string, resp *http.Response) string {
 }
 
 // SaveSessionIDFromContext check session id in response ctx and save it to session storage
-// 从context中获取sessionId
+// 从context中获取sessionId 这里不再区分invocation 所有有的invocation的sessionId是同一个
 func SaveSessionIDFromContext(ctx context.Context, ep string, autoTimeout int) context.Context {
 
 	timeValue := time.Duration(autoTimeout) * time.Second
@@ -168,36 +169,38 @@ func setCookie(resp *http.Response, value string) {
 }
 
 // SaveSessionIDFromHTTP check session id
-// 设置http sessionId
+// 设置http sessionId  把sessionId设置到response中 上层解析response中的cookie设置SessionStickinessCache
 func SaveSessionIDFromHTTP(ep string, autoTimeout int, resp *http.Response, req *http.Request) {
 	if resp == nil {
 		openlog.Warn(fmt.Sprintf("%s", ErrResponseNil))
 		return
 	}
 
+	// sessionId过期时间
 	timeValue := time.Duration(autoTimeout) * time.Second
 
+	// request中的sessionId
 	var sessionIDStr string
-	// request的sessionId
 	if c, err := req.Cookie(common.LBSessionID); err != http.ErrNoCookie && c != nil {
 		sessionIDStr = c.Value
 	}
 
-	// 清理过期的
+	// 清理过期的sessionId
 	ClearExpired()
 	var sessBool bool
 	if sessionIDStr != "" {
 		_, sessBool = Cache.Get(sessionIDStr)
 	}
 
-	// response的sessionId
+	// response中的sessionId
 	valueChassisLb := GetSessionFromResp(common.LBSessionID, resp)
 	//if session is in resp, then just save it
-	if valueChassisLb != "" { // response中存在sessionId 重置cache
+	// 首次 服务器端处理sessionId resp不变 直接缓存
+	if valueChassisLb != "" {
 		Save(valueChassisLb, ep, timeValue)
-	} else if sessionIDStr != "" && sessBool { //response中没有 request中有 cache有
-		setCookie(resp, sessionIDStr)     // 设置response中cookie
-		Save(sessionIDStr, ep, timeValue) // 重置session cache
+	} else if sessionIDStr != "" && sessBool { //后续 request携带 request中有 cache有
+		setCookie(resp, sessionIDStr)     // 设置response中cookie 在最外层进行SessionStickiness的设置
+		Save(sessionIDStr, ep, timeValue) // 重置session cache  sessionId不过期就一直有效
 	} else {
 		sessionIDValue, err := GenerateSessionID() // cache过期 或者 都不存在 重新生成sessionId
 		if err != nil {
@@ -224,7 +227,7 @@ func GenerateSessionID() (string, error) {
 }
 
 // DeletingKeySuccessiveFailure deleting key successes and failures
-// 失败的响应删除cookie 对于基于会话的balance切换节点
+// 响应失败的节点删除sessionId 对于基于会话的balance重新切换节点
 func DeletingKeySuccessiveFailure(resp *http.Response) {
 	// 清理过期
 	Cache.DeleteExpired()
@@ -317,7 +320,7 @@ func getSessionStickinessCacheKey(namespace string) string {
 }
 
 // GetSessionIDFromInv when use  SessionStickiness , get session id from inv
-// 从response中提取cookie
+// 从请求响应中提取sessionId
 func GetSessionIDFromInv(inv invocation.Invocation, key string) string {
 	var metadata interface{}
 	switch inv.Reply.(type) {

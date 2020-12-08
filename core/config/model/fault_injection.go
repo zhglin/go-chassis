@@ -3,6 +3,7 @@ package model
 import "time"
 
 // FaultProtocolStruct fault protocol struct
+// 注入错误的类型
 type FaultProtocolStruct struct {
 	Fault map[string]Fault `yaml:"protocols"`
 }

@@ -1,7 +1,8 @@
 package retry
 
 import (
-	"github.com/cenkalti/backoff"
+	//"github.com/cenkalti/backoff"
+	"github.com/go-chassis/go-chassis/v2/resilience/retry/backof"
 	"time"
 )
 

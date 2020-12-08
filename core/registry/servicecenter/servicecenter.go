@@ -238,18 +238,20 @@ func (r *ServiceDiscovery) GetMicroServiceInstances(consumerID, providerID strin
 func (r *ServiceDiscovery) FindMicroServiceInstances(consumerID, microServiceName string, tags utiltags.Tags) ([]*registry.MicroServiceInstance, error) {
 	// TODO: wrap default tags for service center
 	// because sc need version and appID to generate tags
+	// 从缓存中读取service的节点
 	tags = wrapTagsForServiceCenter(tags)
 	microServiceInstance, boo := registry.MicroserviceInstanceIndex.Get(microServiceName, tags.KV)
 	appID := tags.AppID()
 	if appID == "" {
 		appID = runtime.App
 	}
-	// 设置依赖cache
+	// 设置依赖cache 不管查没查到
 	registry.AddProviderToCache(microServiceName, appID)
 	if !boo || microServiceInstance == nil {
-		// 参数处理以及sc调用
+		// 获取依赖的service信息
 		criteria := GetCriteriaByService(microServiceName)
 		openlog.Warn(fmt.Sprintf("%s Get instances from remote, key: %s:%s:%s", consumerID, appID, microServiceName, tags.Version()))
+		// 调用discovery获取instance
 		providerInstancesResponse, err := r.registryClient.BatchFindInstances(consumerID, criteria)
 		if err != nil {
 			return nil, fmt.Errorf("FindMicroServiceInstances failed, ProviderID: %s, err: %s", microServiceName, err)
@@ -305,7 +307,7 @@ func (r *ServiceDiscovery) WatchMicroService(selfMicroServiceID string, callback
 }
 
 // AutoSync updating the cache manager
-// 同步 刷新cache
+// 同步 刷新依赖service的instance cache
 func (r *ServiceDiscovery) AutoSync() {
 	c := &CacheManager{
 		registryClient: r.registryClient,
@@ -553,6 +555,7 @@ func newContractDiscovery(options registry.Options) registry.ContractDiscovery {
 }
 
 // init initialize the plugin of service center registry
+// 注册注册中心插件
 func init() {
 	registry.InstallRegistrator(ServiceCenter, NewRegistrator)
 	registry.InstallServiceDiscovery(ServiceCenter, NewServiceDiscovery)

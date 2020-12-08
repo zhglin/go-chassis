@@ -76,10 +76,10 @@ const (
 )
 
 // SessionNameSpaceKey metadata session namespace key
-const SessionNameSpaceKey = "_Session_Namespace" // session缓冲中的对应的key meteData中的value对应不同的service
+const SessionNameSpaceKey = "_Session_Namespace" // SessionStickinessCache缓存中的对应的key meteData中的value对应不同的invocation
 
 // SessionNameSpaceDefaultValue default session namespace value
-const SessionNameSpaceDefaultValue = "default" // 默认的session的cookie名
+const SessionNameSpaceDefaultValue = "default" // 默认的session的cookie名 所有service的SessionStickinessCache缓存key一样
 
 // DefaultKey default key
 const DefaultKey = "default"
@@ -185,6 +185,7 @@ func WithContext(ctx context.Context, key, val string) context.Context {
 
 // FromContext return the headers which should be send to provider
 // through transport
+// 读取ContextHeaderKey的值
 func FromContext(ctx context.Context) map[string]string {
 	if ctx == nil {
 		return make(map[string]string)

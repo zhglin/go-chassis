@@ -80,7 +80,7 @@ func ValidateFaultDelay(fault *model.Fault) error {
 //ApplyFaultInjection abort/delay
 // 生效
 func ApplyFaultInjection(fault *model.Fault, inv *invocation.Invocation, configuredPercent int, faultType string) error {
-	// 随机生效
+	// 按百分比生效
 	if rand.Intn(MaxPercentage)+1 <= configuredPercent {
 		return injectFault(faultType, fault)
 	}
@@ -94,6 +94,7 @@ func injectFault(faultType string, fault *model.Fault) error {
 		time.Sleep(fault.Delay.FixedDelay)
 	}
 
+	// 异常
 	if faultType == "abort" {
 		return errors.New("injecting abort")
 	}

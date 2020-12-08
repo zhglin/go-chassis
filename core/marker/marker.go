@@ -83,13 +83,13 @@ func Mark(inv *invocation.Invocation) {
 		return true
 	})
 
-	// 匹配上
+	// 匹配上 设置标记
 	if matchName != "" {
 		//the invocation math policy
-		if policy == Once {
+		if policy == Once { // 整个链路都使用
 			inv.SetHeader(common.HeaderMark, matchName)
 		}
-		inv.Mark(matchName)
+		inv.Mark(matchName) // 此invocation自己使用 可配路由使用
 	}
 }
 

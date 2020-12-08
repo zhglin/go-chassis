@@ -16,6 +16,7 @@ import (
 )
 
 // TransportHandler transport handler
+// 请求调用
 type TransportHandler struct{}
 
 // Name returns transport string
@@ -33,6 +34,7 @@ func errNotNil(err error, cb invocation.ResponseCallBack) {
 // Handle is to handle transport related things
 func (th *TransportHandler) Handle(chain *Chain, i *invocation.Invocation, cb invocation.ResponseCallBack) {
 
+	// 获取链接
 	c, err := client.GetClient(i)
 	if err != nil {
 		errNotNil(err, cb)
@@ -47,11 +49,14 @@ func (th *TransportHandler) Handle(chain *Chain, i *invocation.Invocation, cb in
 	if resp, ok := i.Reply.(*http.Response); ok {
 		r.Status = resp.StatusCode
 	}
+
+	// 请求异常
 	if err != nil {
 		r.Err = err
 		if err != client.ErrCanceled {
 			openlog.Error(fmt.Sprintf("call err [%s]", err.Error()))
 		}
+		// 有err并不一定没有resp 因为有code码保护
 		if i.Strategy == loadbalancer.StrategySessionStickiness {
 			ProcessSpecialProtocol(i)
 			ProcessSuccessiveFailure(i)
@@ -60,6 +65,7 @@ func (th *TransportHandler) Handle(chain *Chain, i *invocation.Invocation, cb in
 		return
 	}
 
+	// 记录请求的耗时
 	if i.Strategy == loadbalancer.StrategyLatency {
 		timeAfter := time.Since(timeBefore)
 		loadbalancer.SetLatency(timeAfter, i.Endpoint, i.MicroServiceName, i.RouteTags, i.Protocol)
@@ -74,6 +80,7 @@ func (th *TransportHandler) Handle(chain *Chain, i *invocation.Invocation, cb in
 }
 
 //ProcessSpecialProtocol handles special logic for protocol
+// 请求成功时处理sessionStickinessStrategy的balance  设置response的cookie
 func ProcessSpecialProtocol(inv *invocation.Invocation) {
 	switch inv.Protocol {
 	case common.ProtocolRest:
@@ -89,6 +96,7 @@ func ProcessSpecialProtocol(inv *invocation.Invocation) {
 }
 
 //ProcessSuccessiveFailure handles special logic for protocol
+// 处理请求失败的sessionId
 func ProcessSuccessiveFailure(i *invocation.Invocation) {
 	var cookie string
 	var reply *http.Response
@@ -98,9 +106,11 @@ func ProcessSuccessiveFailure(i *invocation.Invocation) {
 		if i.Reply != nil && i.Args != nil {
 			reply = i.Reply.(*http.Response)
 		}
+		// todo 这里的context.TODO应该传nil
 		cookie = session.GetSessionCookie(context.TODO(), reply)
 		if cookie != "" {
-			loadbalancer.IncreaseSuccessiveFailureCount(cookie)
+			// 达到失败上线 删除sessionId cache进行重新选择节点
+			loadbalancer.IncreaseSuccessiveFailureCount(cookie) // 统计计数
 			errCount := loadbalancer.GetSuccessiveFailureCount(cookie)
 			if errCount == config.StrategySuccessiveFailedTimes(i.SourceServiceID, i.MicroServiceName) {
 				session.DeletingKeySuccessiveFailure(reply)
