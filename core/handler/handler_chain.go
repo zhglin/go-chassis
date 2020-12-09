@@ -20,6 +20,7 @@ type Chain struct {
 	Handlers    []Handler // handlers
 }
 
+// 复制
 func (c *Chain) Clone() Chain {
 	var clone = Chain{
 		ServiceType: c.ServiceType,

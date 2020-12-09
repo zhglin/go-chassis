@@ -39,6 +39,7 @@ func GetServerFunc(protocol string) (NewFunc, error) {
 }
 
 //GetServer return the server based on protocol
+// 校验protocol对应的server是否存在
 func GetServer(protocol string) (ProtocolServer, error) {
 	s, ok := servers[protocol]
 	if !ok {

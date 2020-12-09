@@ -4,6 +4,7 @@ package server
 // ProtocolServer interface for the protocol server, a server should implement init, register, start, and stop
 type ProtocolServer interface {
 	//Register a schema of microservice,return unique schema id,you can specify schema id and microservice name of this schema
+	// 路由注册
 	Register(interface{}, ...RegisterOption) (string, error)
 	Start() error
 	Stop() error

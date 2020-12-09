@@ -56,18 +56,21 @@ type Parameters struct {
 }
 
 //Router is to define how route the request
+// 路由接口
 type Router interface {
 	//URLPatterns returns route
 	URLPatterns() []Route
 }
 
 //RouteGroup is to define the route group name
+// 返回路由前缀
 type RouteGroup interface {
 	//GroupPath if return non-zero-value, it would be appended to route as prefix
 	GroupPath() string
 }
 
 //GetRouteGroup is to return a router group path
+// 路由前缀
 func GetRouteGroup(schema interface{}) string {
 	v, ok := schema.(RouteGroup)
 	if !ok {
@@ -78,6 +81,7 @@ func GetRouteGroup(schema interface{}) string {
 }
 
 //GetRouteSpecs is to return a rest API specification of a go struct
+// 获取路由
 func GetRouteSpecs(schema interface{}) ([]Route, error) {
 	v, ok := schema.(Router)
 	if !ok {
@@ -87,6 +91,7 @@ func GetRouteSpecs(schema interface{}) ([]Route, error) {
 }
 
 //WrapHandlerChain wrap business handler with handler chain
+// 转换成restFull handler
 func WrapHandlerChain(route *Route, schema interface{}, schemaName string, opts server.Options) (restful.RouteFunction, error) {
 	handleFunc, err := BuildRouteHandler(route, schema)
 	if err != nil {
@@ -124,6 +129,7 @@ func WrapHandlerChain(route *Route, schema interface{}, schemaName string, opts 
 			}
 		}
 
+		// header设置到invocation context中
 		inv, err := HTTPRequest2Invocation(req, schemaName, route.ResourceFuncName, resp)
 		if err != nil {
 			openlog.Error("transfer http request to invocation failed.", openlog.WithTags(openlog.Tags{
@@ -136,7 +142,7 @@ func WrapHandlerChain(route *Route, schema interface{}, schemaName string, opts 
 		bs.Resp = resp
 		//create a new chain for each resource handler
 		c := originChain.Clone()
-		c.AddHandler(newHandler(handleFunc, bs, opts))
+		c.AddHandler(newHandler(handleFunc, bs, opts)) // 创建handle，并添加到chain的最后
 		//give inv.Ctx to user handlers, modules may inject headers in handler chain
 		c.Next(inv, func(ir *invocation.Response) {
 			if ir.Err != nil {
@@ -158,6 +164,7 @@ func WrapHandlerChain(route *Route, schema interface{}, schemaName string, opts 
 }
 
 // GroupRoutePath add group route path to route
+// 获取并设置路由前缀
 func GroupRoutePath(route *Route, schema interface{}) {
 	groupPath := GetRouteGroup(schema)
 	if groupPath != "" {
@@ -167,9 +174,10 @@ func GroupRoutePath(route *Route, schema interface{}) {
 
 //BuildRouteHandler build handler func from ResourceFunc or ResourceFuncName
 func BuildRouteHandler(route *Route, schema interface{}) (func(ctx *Context), error) {
+	// resourceFunc已存在
 	if route.ResourceFunc != nil {
-		if route.ResourceFuncName == "" {
-			route.ResourceFuncName = getFunctionName(route.ResourceFunc)
+		if route.ResourceFuncName == "" { // resourceFuncName未设置
+			route.ResourceFuncName = getFunctionName(route.ResourceFunc) // 获取并设置函数名
 		}
 
 		return func(ctx *Context) {
@@ -177,6 +185,7 @@ func BuildRouteHandler(route *Route, schema interface{}) (func(ctx *Context), er
 		}, nil
 	}
 
+	//更具resourceFuncName查看对应的func
 	method, exist := reflect.TypeOf(schema).MethodByName(route.ResourceFuncName)
 	if !exist {
 		openlog.Error(fmt.Sprintf("router func can not find: %s", route.ResourceFuncName))
@@ -189,6 +198,7 @@ func BuildRouteHandler(route *Route, schema interface{}) (func(ctx *Context), er
 }
 
 //getFunctionName get method name from func
+// 获取函数名称
 func getFunctionName(i interface{}) string {
 	metaName := runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 	metaNameArr := strings.Split(metaName, ".")

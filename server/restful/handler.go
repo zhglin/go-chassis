@@ -8,6 +8,7 @@ import (
 )
 
 // ResourceHandler wraps go-chassis restful function
+// provider handler
 type ResourceHandler struct {
 	handleFunc func(ctx *Context)
 	rc         *Context

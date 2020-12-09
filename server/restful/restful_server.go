@@ -95,6 +95,7 @@ func addProfileRoutes(ws *restful.WebService) {
 }
 
 // HTTPRequest2Invocation convert http request to uniform invocation data format
+// httpRequest 转换成 invocation
 func HTTPRequest2Invocation(req *restful.Request, schema, operation string, resp *restful.Response) (*invocation.Invocation, error) {
 	inv := &invocation.Invocation{
 		MicroServiceName:   runtime.ServiceName,
@@ -110,6 +111,7 @@ func HTTPRequest2Invocation(req *restful.Request, schema, operation string, resp
 		},
 	}
 	//set headers to Ctx, then user do not  need to consider about protocol in handlers
+	// 不需要考虑处理程序中的协议
 	m := make(map[string]string)
 	inv.Ctx = context.WithValue(context.Background(), common.ContextHeaderKey{}, m)
 	for k := range req.Request.Header {
@@ -118,6 +120,7 @@ func HTTPRequest2Invocation(req *restful.Request, schema, operation string, resp
 	return inv, nil
 }
 
+// 注册api接口
 func (r *restfulServer) Register(schema interface{}, options ...server.RegisterOption) (string, error) {
 	openlog.Info("register rest server")
 	opts := server.RegisterOptions{}
@@ -127,6 +130,7 @@ func (r *restfulServer) Register(schema interface{}, options ...server.RegisterO
 		o(&opts)
 	}
 
+	// 获取路由表
 	routes, err := GetRouteSpecs(schema)
 	if err != nil {
 		return "", err
@@ -140,10 +144,13 @@ func (r *restfulServer) Register(schema interface{}, options ...server.RegisterO
 	openlog.Info(fmt.Sprintf("schema registered is [%s]", schemaName))
 	for k := range routes {
 		GroupRoutePath(&routes[k], schema)
+		// 生成restFull路由函数
 		handler, err := WrapHandlerChain(&routes[k], schema, schemaName, r.opts)
 		if err != nil {
 			return "", err
 		}
+
+		// 注册路由
 		if err := Register2GoRestful(routes[k], r.ws, handler); err != nil {
 			return "", err
 		}

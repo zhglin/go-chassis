@@ -46,9 +46,9 @@ type Invocation struct {
 	// like service version, env, etc.
 	RouteTags utiltags.Tags // 路由添加 balance route [common.BuildinTagVersion]
 
-	SchemaID    string // correspond struct name
-	OperationID string // correspond func name of struct	// request url path
-	URLPath     string // relative API path of http request
+	SchemaID    string // correspond struct name  路由的结构体名称
+	OperationID string // correspond func name of struct	// provider:路由结构体中函数名  request url path
+	URLPath     string // relative API path of http request	// provider:请求url
 
 	// it holds native request of protocol, use http protocol for example,
 	// it is *http.request
