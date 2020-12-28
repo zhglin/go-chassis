@@ -114,6 +114,7 @@ func HTTPRequest2Invocation(req *restful.Request, schema, operation string, resp
 	// 不需要考虑处理程序中的协议
 	m := make(map[string]string)
 	inv.Ctx = context.WithValue(context.Background(), common.ContextHeaderKey{}, m)
+	// header中数据设置到ctx中
 	for k := range req.Request.Header {
 		m[k] = req.Request.Header.Get(k)
 	}
